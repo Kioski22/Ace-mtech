@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Messaging Panel</title>
+    <link rel="stylesheet" href="messenger.css">
+    <style>
+        body { background: #f8fffb; font-family: Arial, sans-serif; }
+        .admin-container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); padding: 0; display: flex; height: 650px; }
+        .admin-left { width: 320px; border-right: 1.5px solid #e5e7eb; display: flex; flex-direction: column; height: 100%; }
+        .admin-header { background: #22c55e; color: #fff; font-size: 1.5rem; font-weight: bold; padding: 20px 24px; border-radius: 18px 0 0 0; }
+        .ticket-list { display: flex; flex-direction: column; gap: 18px; padding: 24px; }
+        .ticket-card { background: #f3f4f6; border-radius: 12px; width: 100%; min-height: 90px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); display: flex; flex-direction: column; justify-content: space-between; padding: 14px 12px; cursor: pointer; transition: box-shadow 0.2s; }
+        .ticket-card.selected, .ticket-card:hover { box-shadow: 0 4px 16px rgba(34,197,94,0.12); border: 2px solid #22c55e; }
+        .ticket-title { font-weight: 600; font-size: 1.1em; }
+        .ticket-status { background: #22c55e; color: #fff; font-size: 11px; border-radius: 8px; padding: 2px 10px; display: inline-block; margin-top: 4px; }
+        .ticket-date { font-size: 12px; color: #888; margin-top: 8px; }
+        .admin-right { flex: 1; display: flex; flex-direction: column; height: 100%; }
+        .conversation-panel { display: none; flex-direction: column; height: 100%; min-height: 500px; }
+        .conversation-panel.active { display: flex; flex-direction: column; height: 100%; }
+        .conversation-header { background: #22c55e; color: #fff; padding: 18px 24px; font-weight: bold; display: flex; align-items: center; justify-content: space-between; border-radius: 0 18px 0 0; font-size: 1.2rem; }
+        .close-conversation { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
+        .messages-view { flex: 1; overflow-y: auto; padding: 24px 16px 12px 16px; background: #f8fffb; display: flex; flex-direction: column; align-items: flex-start; min-height: 0; }
+        /* Override messenger.css which hides #messages-view */
+        #messages-view { display: flex !important; }
+        /* Ensure the message input stays at the bottom of the panel, not the page */
+        .admin-message-form {
+            width: 100%;
+            display: flex;
+            gap: 8px;
+            padding: 12px 12px 16px 12px;
+            box-sizing: border-box;
+            border-top: 1.5px solid #e5e7eb;
+            background: #fff;
+            position: relative;
+            margin-top: auto;
+        }
+        .admin-message-bubble { background: #fff; color: #222; padding: 8px 18px; border-radius: 12px; min-width: 60px; max-width: 220px; word-break: break-word; box-shadow: 0 1px 4px rgba(0,0,0,0.08); font-size: 16px; font-weight: 500; text-align: center; margin-bottom: 4px; }
+        .admin-message-time { font-size: 12px; color: #888; margin-bottom: 18px; text-align: center; }
+        /* (removed duplicate .admin-message-form rule) */
+        .admin-message-input { flex: 1; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; font-size: 15px; }
+        .admin-send-btn { background: #22c55e; color: #fff; border: none; border-radius: 8px; padding: 8px 24px; font-weight: 600; font-size: 16px; }
+        /* Messenger icon bubble for messaging */
+        #messenger-fab {
+          position: fixed;
+          bottom: 32px;
+          right: 32px;
+          width: 60px;
+          height: 60px;
+          background: #16a34a;
+          color: #fff;
+          border-radius: 50%;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 2147483647;
+          font-size: 32px;
+          transition: background 0.2s;
+          pointer-events: auto;
+        }
+        #messenger-fab:hover {
+          background: #22c55e;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="admin-left">
+            <div class="admin-header">Inquiries</div>
+            <div class="ticket-list" id="ticket-list"></div>
+        </div>
+        <div class="admin-right">
+            <div class="conversation-panel" id="conversation-panel">
+                <div class="conversation-header">
+                    <span id="conversation-title">Ticket</span>
+                    <button class="close-conversation" id="close-conversation">&times;</button>
+                </div>
+                <div class="messages-view" id="messages-view"></div>
+                <form class="admin-message-form" id="message-form">
+                    <input class="admin-message-input" id="message-input" type="text" placeholder="Type your message..." autocomplete="off" />
+                    <button class="admin-send-btn" id="send-message" type="submit">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Messenger Floating Button removed for admin screen -->
+    <script type="module" src="messenger-admin.js"></script>
+</body>
+</html>

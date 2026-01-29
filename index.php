@@ -1014,6 +1014,24 @@
 		</div>
 	</footer>
 
+		<!-- Messenger Floating Button and Popup UI for Users -->
+		<link rel="stylesheet" href="admin/messages/messenger.css">
+		<div id="messenger-fab" title="Messages">
+			<!-- Messenger Icon SVG -->
+			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+		</div>
+		<div id="messenger-popup">
+			<div id="messenger-header">
+				<span>Send an Inquiry</span>
+				<button id="messenger-close">&times;</button>
+			</div>
+			<div id="messages-view" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;"></div>
+			<form id="message-form" style="width:100%;display:flex;gap:8px;padding:12px 12px 16px 12px;box-sizing:border-box;">
+				<input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:15px;" />
+				<button id="send-message" type="submit" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:8px 24px;font-weight:600;font-size:16px;">Send</button>
+			</form>
+		</div>
+		<script type="module" src="admin/messages/messenger.js"></script>
 	<script>
 		(function () {
 			// Dark mode toggle
@@ -1097,5 +1115,10 @@
 			});
 		})();
 	</script>
+	<!-- Messenger Chat plugin Code -->
+<div id="fb-root"></div>
+<div id="fb-customer-chat" class="fb-customerchat"></div>
+
+
 </body>
 </html>
