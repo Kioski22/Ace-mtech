@@ -18,6 +18,56 @@ const headerTitle = document.querySelector('#messenger-header span');
 
 let ticketId = null;
 let ticketName = null;
+let originalTitle = document.title;
+let unreadCount = 0;
+let lastSeenTs = 0;
+
+function showToast(text) {
+  try {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const t = document.createElement('div');
+    t.style.pointerEvents = 'auto';
+    t.style.background = '#111';
+    t.style.color = '#fff';
+    t.style.padding = '10px 14px';
+    t.style.borderRadius = '10px';
+    t.style.boxShadow = '0 6px 20px rgba(0,0,0,0.2)';
+    t.style.fontSize = '13px';
+    t.style.opacity = '0';
+    t.style.transition = 'opacity 300ms ease';
+    t.textContent = text;
+    container.appendChild(t);
+    // force reflow then fade in
+    // eslint-disable-next-line no-unused-expressions
+    t.getBoundingClientRect();
+    t.style.opacity = '1';
+    const VISIBLE = 6000;
+    const FADE = 400;
+    setTimeout(() => { t.style.opacity = '0'; }, VISIBLE);
+    setTimeout(() => { if (t.parentNode) t.parentNode.removeChild(t); }, VISIBLE + FADE + 50);
+  } catch (e) {}
+}
+
+function bumpTab(count = 1) {
+  unreadCount += count;
+  document.title = `(${unreadCount}) ${originalTitle}`;
+  const fabBadge = document.getElementById('fab-badge');
+  if (fabBadge) {
+    const prev = parseInt(fabBadge.getAttribute('data-count')||'0',10) || 0;
+    const next = prev + count;
+    fabBadge.setAttribute('data-count', String(next));
+    fabBadge.textContent = String(next);
+    fabBadge.style.display = 'inline-flex';
+  }
+}
+
+function clearTab() {
+  unreadCount = 0;
+  document.title = originalTitle;
+  const fabBadge = document.getElementById('fab-badge');
+  if (fabBadge) { fabBadge.setAttribute('data-count','0'); fabBadge.textContent = '0'; fabBadge.style.display = 'none'; }
+}
 
 function formatDate(ts) {
   if (!ts) return '';
@@ -27,6 +77,10 @@ function formatDate(ts) {
 
 fab.addEventListener('click', () => {
   popup.classList.toggle('active');
+  if (popup.classList.contains('active')) {
+    // user opened the messenger: clear badge/tab counter
+    clearTab();
+  }
   if (ticketId) loadMessages();
 });
 closeBtn.addEventListener('click', () => {
@@ -70,8 +124,11 @@ function loadMessages() {
   onValue(ref(db, `tickets/${ticketId}/messages`), (snapshot) => {
     const data = snapshot.val();
     let html = '';
+    // detect newest ts
+    let newest = lastSeenTs;
     if (data) {
       Object.values(data).sort((a, b) => a.timestamp - b.timestamp).forEach(msg => {
+        if (msg.timestamp && msg.timestamp > newest) newest = msg.timestamp;
         // User messages right, admin messages left
         if (msg.sender === 'user') {
           html += `
@@ -98,5 +155,18 @@ function loadMessages() {
     }
     messagesView.innerHTML = html;
     messagesView.scrollTop = messagesView.scrollHeight;
+    // if there is a new message from admin and the popup is closed, notify user
+    if (newest > lastSeenTs) {
+      // find last message object
+      const msgs = Object.values(data || {}).sort((a,b)=>a.timestamp-b.timestamp);
+      const last = msgs[msgs.length-1];
+      if (last && last.sender === 'admin') {
+        if (!popup.classList.contains('active') || document.hidden) {
+          showToast('Admin replied: ' + (last.text || '').slice(0,80));
+          bumpTab();
+        }
+      }
+      lastSeenTs = newest;
+    }
   });
 }
