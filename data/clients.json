@@ -1,0 +1,17 @@
+[
+    {
+        "name": "PSME",
+        "image": "source_img/clients/client-20260205041653-b62a3f2e.png",
+        "created_at": "2026-02-05T04:16:53+01:00"
+    },
+    {
+        "name": "JB",
+        "image": "source_img/clients/client-20260205041830-1d9e277b.jpg",
+        "created_at": "2026-02-05T04:18:30+01:00"
+    },
+    {
+        "name": "Randy",
+        "image": "source_img/clients/client-20260205042052-78d4a4f0.png",
+        "created_at": "2026-02-05T04:20:52+01:00"
+    }
+]

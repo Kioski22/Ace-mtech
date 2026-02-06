@@ -1,3 +1,9 @@
+<?php
+require_once __DIR__ . "/includes/data.php";
+
+$clients = load_items("clients");
+$partners = load_items("partners");
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -404,8 +410,16 @@
 			display:flex;
 			align-items:center;
 			justify-content:center;
+			flex-direction:column;
+			gap:8px;
 			transition: all 0.3s ease;
 			backdrop-filter: blur(10px);
+		}
+		.logo img{
+			max-width:100%;
+			max-height:60px;
+			object-fit:contain;
+			display:block;
 		}
 		.logo:hover{
 			border-color: var(--brand);
@@ -579,7 +593,7 @@
 	<header>
 		<div class="container">
 			<nav class="nav" aria-label="Primary">
-				<a class="brand" href="#top" aria-label="Ace-mtech Home">
+				<a class="brand" href="index.php" aria-label="Ace-mtech Home">
 					<img src="source_img/Ace-mtech-logo.png" alt="Ace-mtech logo" class="mark" />
 					<span>
 						<span class="title">Ace‑Mtech Group Inc.</span>
@@ -610,12 +624,12 @@
 				</button>
 
 				<div class="navlinks" id="navlinks">
-					<a href="#work">Work</a>
-					<a href="#products">Products</a>
-					<a href="#clients">Clients</a>
-					<a href="#partners">Partners</a>
-					<a href="#contact">Contact</a>
-					<a class="cta" href="#contact">
+					<a href="work.php">Work</a>
+					<a href="products.php">Products</a>
+					<a href="clients.php">Clients</a>
+					<a href="partners.php">Partners</a>
+					<a href="contact.php">Contact</a>
+					<a class="cta" href="index.php#contact">
 						<span>Request a Quote</span>
 						<span aria-hidden="true">→</span>
 					</a>
@@ -857,12 +871,23 @@
 				</div>
 
 				<div class="logos" aria-label="Client list">
-					<div class="logo">Client A</div>
-					<div class="logo">Client B</div>
-					<div class="logo">Client C</div>
-					<div class="logo">Client D</div>
-					<div class="logo">Client E</div>
-					<div class="logo">Client F</div>
+					<?php if (!$clients): ?>
+						<div class="logo">Client A</div>
+						<div class="logo">Client B</div>
+						<div class="logo">Client C</div>
+						<div class="logo">Client D</div>
+						<div class="logo">Client E</div>
+						<div class="logo">Client F</div>
+					<?php else: ?>
+						<?php foreach ($clients as $client): ?>
+							<div class="logo">
+								<?php if (!empty($client["image"])): ?>
+									<img src="<?php echo htmlspecialchars($client["image"]); ?>" alt="<?php echo htmlspecialchars($client["name"]); ?> logo" loading="lazy" />
+								<?php endif; ?>
+								<span><?php echo htmlspecialchars($client["name"]); ?></span>
+							</div>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</div>
 			</section>
 
@@ -877,12 +902,23 @@
 				</div>
 
 				<div class="logos" aria-label="Partner list">
-					<div class="logo">Partner 1</div>
-					<div class="logo">Partner 2</div>
-					<div class="logo">Partner 3</div>
-					<div class="logo">Partner 4</div>
-					<div class="logo">Partner 5</div>
-					<div class="logo">Partner 6</div>
+					<?php if (!$partners): ?>
+						<div class="logo">Partner 1</div>
+						<div class="logo">Partner 2</div>
+						<div class="logo">Partner 3</div>
+						<div class="logo">Partner 4</div>
+						<div class="logo">Partner 5</div>
+						<div class="logo">Partner 6</div>
+					<?php else: ?>
+						<?php foreach ($partners as $partner): ?>
+							<div class="logo">
+								<?php if (!empty($partner["image"])): ?>
+									<img src="<?php echo htmlspecialchars($partner["image"]); ?>" alt="<?php echo htmlspecialchars($partner["name"]); ?> logo" loading="lazy" />
+								<?php endif; ?>
+								<span><?php echo htmlspecialchars($partner["name"]); ?></span>
+							</div>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</div>
 			</section>
 
@@ -1004,11 +1040,11 @@
 			<div class="foot">
 				<div>© <span id="year"></span> Ace‑mtech Group Incorporated. All rights reserved.</div>
 				<div style="display:flex; gap:12px; flex-wrap:wrap">
-					<a href="#work">Work</a>
-					<a href="#products">Products</a>
-					<a href="#clients">Clients</a>
-					<a href="#partners">Partners</a>
-					<a href="#contact">Contact</a>
+					<a href="work.php">Work</a>
+					<a href="products.php">Products</a>
+					<a href="clients.php">Clients</a>
+					<a href="partners.php">Partners</a>
+					<a href="contact.php">Contact</a>
 				</div>
 			</div>
 		</div>
@@ -1017,21 +1053,50 @@
 		<!-- Messenger Floating Button and Popup UI for Users -->
 		<link rel="stylesheet" href="admin/messages/messenger.css">
 		<div id="messenger-fab" title="Messages" style="position:fixed;bottom:20px;right:20px;z-index:2147483647;display:flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;background:#16a34a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.12);">
-			<!-- Messenger Icon SVG -->
 			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
 			<span id="fab-badge" data-count="0" style="position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;font-weight:700;line-height:20px;box-shadow:0 4px 12px rgba(0,0,0,0.12)"></span>
 		</div>
-		<!-- Toast container for user notifications (top-right) -->
 		<div id="toast-container" style="position:fixed;right:20px;top:20px;z-index:2147483650;display:flex;flex-direction:column;gap:10px;pointer-events:none"></div>
-		<div id="messenger-popup">
-			<div id="messenger-header">
-				<span>Send an Inquiry</span>
+		<div id="messenger-popup" class="messenger-popup">
+			<div id="messenger-header" class="messenger-header">
+				<div>
+					<div class="messenger-title">Send a message</div>
+					<div class="messenger-subtitle" id="messenger-subtitle">We typically reply within the day.</div>
+				</div>
 				<button id="messenger-close">&times;</button>
 			</div>
-			<div id="messages-view" style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;"></div>
-			<form id="message-form" style="width:100%;display:flex;gap:8px;padding:12px 12px 16px 12px;box-sizing:border-box;">
-				<input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" style="flex:1;border:1.5px solid #e5e7eb;border-radius:8px;padding:10px 12px;font-size:15px;" />
-				<button id="send-message" type="submit" style="background:#22c55e;color:#fff;border:none;border-radius:8px;padding:8px 24px;font-weight:600;font-size:16px;">Send</button>
+			<div class="messenger-body">
+				<div class="messenger-start" id="support-start">
+					<p class="messenger-start-title">Start a new inquiry</p>
+					<form id="support-start-form" class="messenger-start-form">
+						<div class="form-field">
+							<label for="support-name">Name</label>
+							<input id="support-name" type="text" autocomplete="name" required />
+						</div>
+						<div class="form-field">
+							<label for="support-email">Email</label>
+							<input id="support-email" type="email" autocomplete="email" required />
+						</div>
+						<div class="form-field">
+							<label for="support-subject">Subject</label>
+							<input id="support-subject" type="text" placeholder="Project inquiry" required />
+						</div>
+						<div class="form-field">
+							<label for="support-message">Message</label>
+							<textarea id="support-message" rows="3" placeholder="Tell us about your request" required></textarea>
+						</div>
+						<div class="form-actions">
+							<button class="btn-primary" type="submit">Start chat</button>
+						</div>
+					</form>
+				</div>
+				<div class="messenger-chat" id="support-chat">
+					<div id="messages-view" class="messages-view"></div>
+				</div>
+			</div>
+			<form id="message-form" class="message-form">
+				<input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" disabled />
+				<button id="send-message" type="submit" disabled>Send</button>
 			</form>
 		</div>
 		<script type="module" src="admin/messages/messenger.js"></script>
@@ -1094,7 +1159,8 @@
 			});
 
 			var form = document.getElementById('contactForm');
-			form.addEventListener('submit', function (e) {
+			if (form) {
+				form.addEventListener('submit', function (e) {
 				e.preventDefault();
 				var name = document.getElementById('name').value.trim();
 				var company = document.getElementById('company').value.trim();
@@ -1116,6 +1182,7 @@
 
 				window.location.href = url;
 			});
+			}
 		})();
 	</script>
 	<!-- Messenger Chat plugin Code -->
