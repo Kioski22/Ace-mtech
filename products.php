@@ -2,6 +2,9 @@
 require_once __DIR__ . "/includes/repository.php";
 
 $products = get_products();
+$galleryPosts = get_product_gallery_posts();
+$socialLinks = get_social_links();
+$siteLogoPath = get_site_logo_path();
 ?>
 <!doctype html>
 <html lang="en">
@@ -9,6 +12,27 @@ $products = get_products();
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="theme-color" content="#16a34a" />
+	<script>
+		(function () {
+			var THEME_KEY = 'acemtech_theme';
+			var fallbackTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+			try {
+				var theme = localStorage.getItem(THEME_KEY);
+				if (theme !== 'light' && theme !== 'dark') {
+					var legacyTheme = localStorage.getItem('theme');
+					if (legacyTheme === 'light' || legacyTheme === 'dark') {
+						theme = legacyTheme;
+						localStorage.setItem(THEME_KEY, legacyTheme);
+					} else {
+						theme = fallbackTheme;
+					}
+				}
+				document.documentElement.setAttribute('data-theme', theme);
+			} catch (error) {
+				document.documentElement.setAttribute('data-theme', fallbackTheme);
+			}
+		})();
+	</script>
 	<title>Ace‑mtech Group | Products</title>
 	<meta name="description" content="Authorized HVAC and appliance brands with professional installation and support." />
 	<link rel="stylesheet" href="styles.css" />
@@ -21,7 +45,7 @@ $products = get_products();
 		<div class="container">
 			<nav class="nav" aria-label="Primary">
 				<a class="brand" href="index.php" aria-label="Ace-mtech Home">
-					<img src="source_img/Ace-mtech-logo.png" alt="Ace-mtech logo" class="mark" />
+					<img src="<?php echo htmlspecialchars($siteLogoPath); ?>" alt="Ace-mtech logo" class="mark" />
 					<span>
 						<span class="title">Ace‑Mtech Group Inc.</span>
 						<span class="tag">Architectural • Civil • Electrical • Mechanical</span>
@@ -164,47 +188,72 @@ $products = get_products();
 				<div class="sectionHead">
 					<div>
 						<h2>Gallery</h2>
-						<p class="sectionDesc">Recent installations, equipment highlights, and project snapshots. Replace with your actual photos.</p>
+						<p class="sectionDesc">Recent installations, equipment highlights, and project snapshots.</p>
 					</div>
 				</div>
 
-				<div class="gallery">
-					<figure class="galleryItem">
-						<div class="galleryImage">VRV Installation</div>
-						<figcaption class="galleryBody">
-							<p>High-efficiency VRV setup for multi-zone commercial spaces.</p>
-						</figcaption>
-					</figure>
-					<figure class="galleryItem">
-						<div class="galleryImage">Control Systems</div>
-						<figcaption class="galleryBody">
-							<p>Smart building automation and monitoring panels.</p>
-						</figcaption>
-					</figure>
-					<figure class="galleryItem">
-						<div class="galleryImage">Ducting Works</div>
-						<figcaption class="galleryBody">
-							<p>Precision duct fabrication and airflow balancing.</p>
-						</figcaption>
-					</figure>
-					<figure class="galleryItem">
-						<div class="galleryImage">Chiller Plant</div>
-						<figcaption class="galleryBody">
-							<p>Industrial cooling systems with energy-optimized operation.</p>
-						</figcaption>
-					</figure>
-					<figure class="galleryItem">
-						<div class="galleryImage">Fire Protection</div>
-						<figcaption class="galleryBody">
-							<p>Sprinkler systems and compliance-ready safety design.</p>
-						</figcaption>
-					</figure>
-					<figure class="galleryItem">
-						<div class="galleryImage">Split-Type AC</div>
-						<figcaption class="galleryBody">
-							<p>Residential and office installations with clean finishes.</p>
-						</figcaption>
-					</figure>
+				<div class="grid">
+					<?php if ($galleryPosts): ?>
+						<?php foreach ($galleryPosts as $galleryPost): ?>
+							<?php
+								$modalImages = array_map(
+									static function (array $image) use ($galleryPost): array {
+										return [
+											"src" => $image["image_path"],
+											"alt" => $image["alt_text"] ?: $galleryPost["title"],
+										];
+									},
+									$galleryPost["images"] ?? []
+								);
+							?>
+							<article class="card galleryPost">
+								<button
+									type="button"
+									class="galleryTrigger"
+									data-images="<?php echo htmlspecialchars((string)json_encode($modalImages, JSON_UNESCAPED_SLASHES | JSON_HEX_APOS | JSON_HEX_QUOT), ENT_QUOTES, 'UTF-8'); ?>"
+									data-title="<?php echo htmlspecialchars($galleryPost["title"]); ?>"
+									data-caption="<?php echo htmlspecialchars($galleryPost["caption"] ?? ""); ?>"
+									aria-label="Open gallery post: <?php echo htmlspecialchars($galleryPost["title"]); ?>"
+								>
+									<div class="galleryPostMedia">
+										<img src="<?php echo htmlspecialchars($galleryPost["cover_image_path"]); ?>" alt="<?php echo htmlspecialchars($galleryPost["title"]); ?>" loading="lazy" />
+										<?php if (count($modalImages) > 1): ?>
+											<span class="galleryCountBadge"><?php echo count($modalImages); ?> photos</span>
+										<?php endif; ?>
+									</div>
+								</button>
+								<div class="galleryBody">
+									<h3><?php echo htmlspecialchars($galleryPost["title"]); ?></h3>
+									<?php if (!empty($galleryPost["caption"])): ?>
+										<p><?php echo htmlspecialchars($galleryPost["caption"]); ?></p>
+									<?php endif; ?>
+								</div>
+							</article>
+						<?php endforeach; ?>
+					<?php else: ?>
+						<article class="card wide">
+							<h3>Gallery updates coming soon</h3>
+							<p>New project photos and installation highlights will appear here as they are published.</p>
+						</article>
+					<?php endif; ?>
+				</div>
+
+				<div class="galleryModal" id="galleryModal" hidden aria-hidden="true">
+					<div class="galleryModalBackdrop" data-gallery-close></div>
+					<div class="galleryModalDialog" role="dialog" aria-modal="true" aria-labelledby="galleryModalTitle">
+						<button class="galleryModalClose" id="galleryModalClose" type="button" aria-label="Close gallery">×</button>
+						<button class="galleryNav prev" id="galleryPrev" type="button" aria-label="Previous image">‹</button>
+						<div class="galleryStage">
+							<img id="galleryModalImage" src="" alt="" />
+							<div class="galleryModalMeta">
+								<div class="galleryCounter" id="galleryCounter"></div>
+								<h3 id="galleryModalTitle"></h3>
+								<p id="galleryModalCaption"></p>
+							</div>
+						</div>
+						<button class="galleryNav next" id="galleryNext" type="button" aria-label="Next image">›</button>
+						<div class="galleryThumbStrip" id="galleryThumbStrip" aria-label="Gallery thumbnails"></div>
+					</div>
 				</div>
 			</section>
 
@@ -217,24 +266,22 @@ $products = get_products();
 				</div>
 
 				<div class="socialGrid">
-					<article class="socialCard">
-						<div class="socialIcon" aria-hidden="true">F</div>
-						<h3>Facebook</h3>
-						<p>Updates, photos, and announcements from the field.</p>
-						<a class="socialLink" href="https://facebook.com" target="_blank" rel="noopener">Visit Facebook →</a>
-					</article>
-					<article class="socialCard">
-						<div class="socialIcon" aria-hidden="true">I</div>
-						<h3>Instagram</h3>
-						<p>Project highlights, installation details, and behind-the-scenes.</p>
-						<a class="socialLink" href="https://instagram.com" target="_blank" rel="noopener">Visit Instagram →</a>
-					</article>
-					<article class="socialCard">
-						<div class="socialIcon" aria-hidden="true">L</div>
-						<h3>LinkedIn</h3>
-						<p>Company news, partnerships, and career updates.</p>
-						<a class="socialLink" href="https://linkedin.com" target="_blank" rel="noopener">Visit LinkedIn →</a>
-					</article>
+					<?php if (!$socialLinks): ?>
+						<article class="socialCard">
+							<div class="socialIcon" aria-hidden="true">i</div>
+							<h3>Social links unavailable</h3>
+							<p>Please update social links in admin to show this section.</p>
+						</article>
+					<?php else: ?>
+						<?php foreach ($socialLinks as $socialLink): ?>
+							<article class="socialCard">
+								<div class="socialIcon" aria-hidden="true"><?php echo htmlspecialchars($socialLink["icon"]); ?></div>
+								<h3><?php echo htmlspecialchars($socialLink["name"]); ?></h3>
+								<p><?php echo htmlspecialchars($socialLink["description"]); ?></p>
+								<a class="socialLink" href="<?php echo htmlspecialchars($socialLink["url"]); ?>" target="_blank" rel="noopener"><?php echo htmlspecialchars($socialLink["button_label"]); ?></a>
+							</article>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</div>
 			</section>
 		</div>

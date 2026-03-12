@@ -429,41 +429,233 @@ h3{margin: 8px 0 10px; font-size: var(--h3); font-weight:700; color:var(--text-h
 	box-shadow: var(--shadow-card);
 }
 
-.gallery{
-	display:grid;
-	grid-template-columns: repeat(12, minmax(0, 1fr));
-	gap: 18px;
-}
-.galleryItem{
+/* Gallery post cards — same look as .productCard */
+.galleryPost{
 	grid-column: span 4;
-	border:1px solid var(--stroke);
-	background: var(--panel);
-	border-radius: var(--radius);
-	overflow:hidden;
-	box-shadow: var(--shadow-card);
-	transition: all 0.35s ease;
+	padding: 0;
+	overflow: hidden;
 }
-.galleryItem:hover{
-	transform: translateY(-6px);
-	box-shadow: 0 16px 48px rgba(16,185,129,.2);
-	border-color: var(--brand);
+.galleryTrigger{
+	appearance: none;
+	border: 0;
+	padding: 0;
+	margin: 0;
+	background: transparent;
+	display: block;
+	width: 100%;
+	cursor: pointer;
+	text-align: inherit;
 }
-.galleryImage{
-	aspect-ratio: 4 / 3;
-	background:
-		linear-gradient(135deg, rgba(34,197,94,.18), rgba(16,185,129,.05)),
-		radial-gradient(circle at 20% 20%, rgba(34,197,94,.35), transparent 60%);
-	display:flex;
-	align-items:flex-end;
-	justify-content:flex-start;
-	padding: 16px;
-	color: var(--text-heading);
-	font-weight:700;
+.galleryTrigger:focus-visible{
+	outline: 3px solid rgba(34,197,94,.55);
+	outline-offset: -3px;
+}
+.galleryPostMedia{
+	position: relative;
+	width: 100%;
+	height: 0;
+	padding-bottom: 62%;
+	overflow: hidden;
+	background: var(--bg-soft);
+	border-bottom: 1px solid var(--stroke);
+}
+.galleryPostMedia img{
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center;
+	display: block;
+	transition: transform 0.4s ease;
+}
+.galleryPost:hover .galleryPostMedia img{
+	transform: scale(1.04);
+}
+.galleryCountBadge{
+	position: absolute;
+	right: 12px;
+	bottom: 12px;
+	padding: 5px 11px;
+	border-radius: 999px;
+	background: rgba(2, 6, 23, .76);
+	color: #fff;
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: .04em;
+	backdrop-filter: blur(8px);
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.galleryCountBadge::before{
+	content: '';
+	display: inline-block;
+	width: 14px;
+	height: 14px;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='3'/%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'/%3E%3Cpolyline points='21 15 16 10 5 21'/%3E%3C/svg%3E");
+	background-size: contain;
+	background-repeat: no-repeat;
+	opacity: .9;
 }
 .galleryBody{
-	padding: 18px;
+	padding: 18px 20px 20px;
 }
-.galleryBody p{margin:0; color: var(--muted); line-height:1.7; font-size: 14px}
+.galleryBody h3{margin: 0 0 6px; font-size: var(--h3)}
+.galleryBody p{margin: 0; color: var(--muted); line-height: 1.7; font-size: 14px}
+
+.galleryModal[hidden]{display:none}
+.galleryModal{
+	position:fixed;
+	inset:0;
+	z-index:2147483647;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	padding:24px;
+}
+.galleryModalBackdrop{
+	position:absolute;
+	inset:0;
+	background:rgba(2, 6, 23, .84);
+	backdrop-filter:blur(8px);
+}
+.galleryModalDialog{
+	position:relative;
+	display:grid;
+	grid-template-columns:auto minmax(0, 1fr) auto;
+	grid-template-rows:auto auto;
+	gap:16px;
+	align-items:center;
+	width:min(1200px, 100%);
+	max-height:calc(100vh - 48px);
+	z-index:1;
+}
+.galleryStage{
+	position:relative;
+	min-width:0;
+	background:rgba(15, 23, 42, .92);
+	border:1px solid rgba(255,255,255,.08);
+	border-radius:24px;
+	overflow:hidden;
+	box-shadow:0 30px 80px rgba(0,0,0,.45);
+}
+.galleryStage img{
+	display:block;
+	width:100%;
+	max-height:72vh;
+	object-fit:contain;
+	background:#020617;
+}
+.galleryThumbStrip{
+	grid-column:2 / 3;
+	display:flex;
+	gap:10px;
+	padding:6px 4px 0;
+	overflow-x:auto;
+	scrollbar-width:thin;
+	overscroll-behavior-x:contain;
+}
+.galleryThumb{
+	appearance:none;
+	border:2px solid transparent;
+	padding:0;
+	margin:0;
+	background:#020617;
+	border-radius:14px;
+	overflow:hidden;
+	width:96px;
+	height:64px;
+	flex:0 0 auto;
+	cursor:pointer;
+	opacity:.72;
+	transition:border-color .2s ease, opacity .2s ease, transform .2s ease;
+}
+.galleryThumb:hover,
+.galleryThumb.is-active{
+	opacity:1;
+	border-color:rgba(34,197,94,.9);
+	transform:translateY(-2px);
+}
+.galleryThumb:focus-visible{
+	outline:3px solid rgba(34,197,94,.45);
+	outline-offset:2px;
+	opacity:1;
+}
+.galleryThumb img{
+	width:100%;
+	height:100%;
+	object-fit:cover;
+	display:block;
+}
+.galleryModalMeta{
+	padding:18px 20px 22px;
+	background:linear-gradient(180deg, rgba(2,6,23,.1), rgba(2,6,23,.72));
+	color:#fff;
+}
+.galleryCounter{
+	font-size:12px;
+	font-family:var(--mono);
+	letter-spacing:.08em;
+	text-transform:uppercase;
+	color:rgba(255,255,255,.68);
+	margin-bottom:8px;
+}
+.galleryModalMeta h3{
+	margin:0 0 8px;
+	font-size:clamp(20px, 2vw, 28px);
+	color:#fff;
+}
+.galleryModalMeta p{
+	margin:0;
+	color:rgba(255,255,255,.82);
+	line-height:1.7;
+}
+.galleryNav,
+.galleryModalClose{
+	border:0;
+	border-radius:999px;
+	background:rgba(15, 23, 42, .76);
+	color:#fff;
+	cursor:pointer;
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	box-shadow:0 16px 40px rgba(0,0,0,.3);
+	transition:transform .2s ease, background .2s ease;
+}
+.galleryNav:hover,
+.galleryModalClose:hover{
+	transform:translateY(-2px);
+	background:rgba(22, 163, 74, .92);
+}
+.galleryNav{
+	width:56px;
+	height:56px;
+	font-size:34px;
+	font-weight:400;
+	line-height:1;
+	flex-shrink:0;
+}
+.galleryModalClose{
+	position:absolute;
+	top:14px;
+	right:14px;
+	width:42px;
+	height:42px;
+	font-size:28px;
+	z-index:2;
+}
+body.gallery-modal-open{
+	overflow:hidden;
+}
+body.gallery-modal-open #messenger-fab,
+body.gallery-modal-open #messenger-popup,
+body.gallery-modal-open #toast-container,
+body.gallery-modal-open #fb-customer-chat{
+	opacity:0;
+	pointer-events:none;
+}
 
 .socialGrid{
 	display:grid;
@@ -551,6 +743,7 @@ h3{margin: 8px 0 10px; font-size: var(--h3); font-weight:700; color:var(--text-h
 .contactRow span{display:block; color: var(--muted); font-size: 14px; line-height:1.7}
 
 form{display:grid; gap: 16px}
+.hp-field{display:none}
 label{font-size: 14px; color: var(--muted); font-weight:500}
 input, textarea{
 	width:100%;
@@ -575,6 +768,7 @@ input:focus, textarea:focus{
 	background: var(--bg);
 }
 .formHelp{color: var(--muted); font-size: 13px; line-height:1.7}
+.formStatus{color: var(--brand-dark); font-size: 14px; min-height: 20px}
 
 footer{
 	border-top: 1px solid var(--stroke);
@@ -638,7 +832,27 @@ footer{
 	.card{grid-column: span 12}
 	.wide{grid-column: span 12}
 	.logos{grid-template-columns: repeat(2, minmax(0, 1fr))}
-	.galleryItem{grid-column: span 12}
+	.galleryPost{grid-column: span 12}
+	.galleryModal{padding:12px}
+	.galleryModalDialog{grid-template-columns:1fr;gap:12px}
+	.galleryNav{
+		position:absolute;
+		top:50%;
+		transform:translateY(-50%);
+		z-index:2;
+	}
+	.galleryNav.prev{left:12px}
+	.galleryNav.next{right:12px}
+	.galleryNav:hover{transform:translateY(calc(-50% - 2px))}
+	.galleryStage img{max-height:60vh}
+	.galleryThumbStrip{
+		grid-column:auto;
+		padding:4px 0 0;
+	}
+	.galleryThumb{
+		width:76px;
+		height:52px;
+	}
 	.socialCard{grid-column: span 12}
 	.contactGrid{grid-template-columns: 1fr}
 	.sectionAlt{padding: 24px}

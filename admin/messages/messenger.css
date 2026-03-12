@@ -1,174 +1,413 @@
-/* Messenger UI styles for user and admin */
-#messenger-fab {
-  position: fixed;
-  bottom: 32px;
-  right: 32px;
-  width: 60px;
-  height: 60px;
-  background: #16a34a;
-  color: #fff;
-  border-radius: 50%;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 2147483647;
-  font-size: 32px;
-  transition: background 0.2s;
-  pointer-events: auto;
+/* =========================
+   ACE-MTECH Admin Messenger
+   Reworked to match screenshot layout exactly
+   Keeps legacy IDs/classes for JS compatibility
+   ========================= */
+
+:root {
+  --brand-green: #004d12;
+  --page-bg: #dcdcdc;
+  --sidebar-bg: #efefef;
+  --panel-bg: #f3f3f3;
+  --text-main: #222;
+  --text-muted: #666;
+  --line: #bcbcbc;
+
+  --selected-ticket: #cfeec8;
+  --active-badge-bg: #95d59b;
+  --active-badge-text: #124b1f;
+  --closed-badge-bg: #f1b6b6;
+  --closed-badge-text: #7f1d1d;
+
+  --composer-bg: #d3d3d3;
 }
-#messenger-fab:hover {
-  background: #22c55e;
-}
-#messenger-popup {
-  position: fixed;
-  bottom: 100px;
-  right: 32px;
-  width: 360px;
-  max-width: 95vw;
-  height: 560px;
-  max-height: calc(100vh - 140px);
-  background: #9b9b9b;
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-  display: none;
-  flex-direction: column;
-  z-index: 2147483647;
+
+/* Base */
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--page-bg);
+  color: var(--text-main);
   overflow: hidden;
-  pointer-events: auto;
 }
-#messenger-popup.active {
-  display: flex;
+
+/* ===== Legacy floating messenger (kept hidden on admin screen) ===== */
+#messenger-fab,
+#messenger-popup {
+  display: none !important;
 }
-#messenger-header {
-  background: #6bd26f;
-  color: #ffffff;
-  padding: 14px 16px;
-  font-weight: 700;
+
+/* ===== New admin structure ===== */
+.topbar {
+  height: 76px;
+  background: var(--brand-green);
+  color: #fff;
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  padding: 0 20px;
+}
+.topbar-left,
+.topbar-right {
+  display: flex;
   align-items: center;
-  flex: 0 0 auto;
+  gap: 12px;
 }
-
-.messenger-title{font-size:15px;font-weight:700}
-.messenger-subtitle{display:none}
-#messenger-close {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 20px;
-  cursor: pointer;
+.brand-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.18);
 }
-#ticket-list {
-  flex: 1;
-  overflow-y: auto;
-  background: #f8fffb;
-  padding: 12px;
-}
-.ticket-item {
-  background: #e5fbee;
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  cursor: pointer;
+.brand-name {
+  font-size: 28px;
   font-weight: 500;
-  transition: background 0.2s;
 }
-.ticket-item:hover {
-  background: #d1fae5;
+.support-label {
+  font-size: 18px;
 }
-#messages-view {
+.logout-btn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Main split */
+.layout {
+  height: calc(100vh - 76px);
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  min-height: 0;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid #ddd;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-head {
+  padding: 14px 18px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-title {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 500;
+  color: #3a3a3a;
+}
+.settings-btn {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: #4a4a4a;
+}
+
+/* Keep existing hook id */
+#ticket-list.ticket-list {
+  padding: 8px 12px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Ticket card */
+.ticket-card,
+.ticket-item {
+  border: none;
+  width: 100%;
+  background: transparent;
+  border-radius: 12px;
+  text-align: left;
+  padding: 12px 10px;
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+}
+.ticket-card.selected,
+.ticket-item.selected {
+  background: var(--selected-ticket);
+}
+.ticket-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: #d7d7d7;
+  display: grid;
+  place-items: center;
+  color: #434343;
+}
+.ticket-main {
+  min-width: 0;
+}
+.ticket-title {
+  font-size: 15px;
+  color: #3a3a3a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 4px;
+}
+.ticket-date {
+  font-size: 12px;
+  color: #707070;
+}
+.ticket-status {
+  font-size: 11px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+.ticket-status.active {
+  background: var(--active-badge-bg);
+  color: var(--active-badge-text);
+}
+.ticket-status.closed {
+  background: var(--closed-badge-bg);
+  color: var(--closed-badge-text);
+}
+
+/* Conversation area */
+.main {
+  min-height: 0;
+  padding: 16px 18px;
+}
+#conversation-panel.conversation-shell,
+.conversation-panel {
+  height: 100%;
+  background: var(--panel-bg);
+  border-radius: 14px;
+  border: 1px solid #bdbdbd;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.conversation-meta {
+  padding: 26px 18px 8px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.meta-title {
+  margin: 0;
+  font-size: 31px;
+  font-weight: 500;
+  color: #454545;
+}
+.meta-date {
+  margin: 6px 0 0;
+  font-size: 34px;
+  font-weight: 400;
+  color: #555;
+}
+
+/* Category badge (new feature support) */
+#category-indicator,
+.category-indicator {
+  margin: 0 28px 10px;
+  font-size: 14px;
+  color: #2e5e3a;
+  background: #dff2e4;
+  border: 1px solid #b8e2c5;
+  border-radius: 999px;
+  display: inline-block;
+  padding: 6px 10px;
+  width: fit-content;
+}
+
+/* Keep hook id exactly */
+#messages-view.messages-view {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: #9b9b9b;
-  padding: 16px;
+  padding: 10px 28px 16px;
   display: flex;
   flex-direction: column;
+  gap: 12px;
+  background: transparent;
+}
+
+/* Message blocks */
+.message-block {
+  margin-bottom: 8px;
+}
+.message-row {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+.msg-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: #d3d3d3;
+  display: grid;
+  place-items: center;
+  color: #444;
+}
+.msg-sender {
+  font-size: 33px;
+  margin: 2px 0 8px;
+  color: #2f2f2f;
+  font-weight: 400;
+}
+.msg-text {
+  font-size: 34px;
+  line-height: 1.35;
+  margin: 0 0 8px;
+  color: #1f1f1f;
+}
+.msg-time {
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+}
+.msg-divider {
+  border: 0;
+  border-top: 2px solid var(--line);
+  margin: 20px 0 24px;
+}
+.attachment-box {
+  width: 240px;
+  height: 240px;
+  background: #c8c8c8;
+  display: grid;
+  place-items: center;
+  margin-top: 12px;
+  font-size: 44px;
+}
+
+/* Keep legacy bubble classes usable */
+.message-content { max-width: 100%; }
+.message-bubble,
+.admin-message-bubble {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  font-size: inherit;
+  border-radius: 0;
+}
+.message-time,
+.admin-message-time {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Composer - preserve old IDs */
+#message-form.admin-message-form,
+#message-form.composer {
+  flex-shrink: 0;
+  padding: 14px 22px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
   gap: 14px;
+  align-items: center;
+  background: transparent;
+  border-top: none;
 }
-
-.message-row{display:flex;width:100%}
-.message-row--user{justify-content:flex-end}
-.message-row--admin{justify-content:flex-start}
-.message-content{display:flex;flex-direction:column;max-width:70%}
-.message-row--user .message-content{align-items:flex-end}
-
-.message-bubble{
-  padding:10px 14px;
-  border-radius:10px;
-  font-size:13px;
-  line-height:1.4;
-  word-break:break-word;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
-}
-.message-bubble.user{
-  background:#ffffff;
-  color:#111827;
-}
-.message-bubble.admin{
-  background:#2f7d32;
-  color:#ffffff;
-}
-.message-time{
-  font-size:11px;
-  color:#d1d5db;
-  margin-top:4px;
-}
-.message {
-  margin-bottom: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-}
-.message.admin {
-  background: #d1fae5;
-  align-self: flex-end;
-}
-#message-form {
+.composer-input-wrap {
+  background: var(--composer-bg);
+  border-radius: 10px;
+  padding: 0 16px;
+  height: 52px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  border-top: 1px solid #8f8f8f;
-  background: #b9b9b9;
-  padding: 10px 12px;
-  flex: 0 0 auto;
 }
+#message-input.admin-message-input,
+#message-input.composer-input,
 #message-input {
-  flex: 1;
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
-  background: #f5f5f5;
-}
-#send-message {
-  background: #22c55e;
-  color: #fff;
+  width: 100%;
   border: none;
-  border-radius: 8px;
-  padding: 10px 16px;
+  outline: none;
+  background: transparent;
+  font-size: 28px;
+  color: #333;
+  padding: 0;
+}
+#message-input::placeholder {
+  color: #5f5f5f;
+}
+
+/* Send/files buttons */
+.composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.action-btn {
+  border: none;
+  background: transparent;
+  color: #2f2f2f;
+  font-size: 31px;
   cursor: pointer;
-  font-weight: 700;
-  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-#send-message:hover {
-  background: #16a34a;
+#send-message.admin-send-btn,
+#send-message {
+  background: transparent;
+  color: #2f2f2f;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  font-size: 31px;
+  font-weight: 400;
 }
 
-.messenger-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background: #9b9b9b;
-}
+/* Utility */
+.hidden-file-input { display: none; }
 
-.messenger-chat {
-  flex: 1;
-  display: flex;
-  min-height: 0;
+/* Responsive */
+@media (max-width: 980px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    height: 240px;
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .main {
+    padding: 10px;
+  }
+
+  .meta-title { font-size: 22px; }
+  .meta-date { font-size: 24px; }
+  .msg-sender { font-size: 20px; }
+  .msg-text { font-size: 22px; }
+
+  #message-form {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .composer-actions {
+    justify-content: flex-end;
+  }
+
+  #message-input {
+    font-size: 18px;
+  }
+
+  .action-btn,
+  #send-message {
+    font-size: 18px;
+  }
 }

@@ -31,22 +31,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	<title>Admin Login</title>
 	<link rel="stylesheet" href="../styles.css" />
 	<style>
-		body{background:var(--bg-soft)}
-		.loginShell{max-width:520px;margin:0 auto;padding:48px 24px}
-		.loginCard{border:1px solid var(--stroke);background:var(--panel);border-radius:20px;padding:28px;box-shadow:var(--shadow-sm)}
-		.formRow{margin-bottom:14px}
-		.formRow label{display:block;font-weight:600;margin-bottom:6px}
-		.formRow input{width:100%;padding:12px 14px;border:1px solid var(--stroke);border-radius:12px;background:#fff}
-		.alert{padding:12px 14px;border-radius:12px;margin-bottom:16px}
-		.alert.error{background:#fee2e2;border:1px solid #fecaca;color:#991b1b}
+		*{margin:0;padding:0;box-sizing:border-box}
+		body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+		.loginShell{max-width:520px;width:100%}
+		.loginCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+		.loginCard h1{font-size:32px;font-weight:700;color:#1e293b;margin-bottom:8px;letter-spacing:-0.5px}
+		.loginCard .sectionDesc{color:#64748b;font-size:15px;margin-bottom:32px}
+		.formRow{margin-bottom:20px}
+		.formRow label{display:block;font-weight:600;margin-bottom:8px;color:#334155;font-size:14px}
+		.formRow input{width:100%;padding:14px 16px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:15px;transition:all .2s}
+		.formRow input:focus{outline:none;border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,0.1)}
+		.adminBtnPrimary{background:linear-gradient(135deg,#16a34a 0%,#059669 100%);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;transition:all .3s;box-shadow:0 4px 12px rgba(22,163,74,0.3);width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+		.adminBtnPrimary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(22,163,74,0.4)}
+		.alert{padding:14px 18px;border-radius:10px;margin-bottom:20px;font-size:14px}
+		.alert.error{background:#fee2e2;border:1.5px solid #fecaca;color:#991b1b}
+		.loginCard a{color:#16a34a;text-decoration:none;font-weight:600;transition:color .2s}
+		.loginCard a:hover{color:#059669;text-decoration:underline}
 	</style>
 </head>
 <body>
 	<div class="loginShell">
-		<h1 style="margin-bottom:10px">Admin login</h1>
-		<p class="sectionDesc" style="margin-bottom:22px">Sign in to manage clients and partners.</p>
-
 		<div class="loginCard">
+			<h1>Admin Login</h1>
+			<p class="sectionDesc">Sign in to manage clients and partners.</p>
 			<?php if ($error): ?>
 				<div class="alert error"><?php echo htmlspecialchars($error); ?></div>
 			<?php endif; ?>
@@ -60,14 +67,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 					<label for="password">Password</label>
 					<input id="password" name="password" type="password" required />
 				</div>
-				<button class="cta" type="submit"><span>Sign in</span><span aria-hidden="true">→</span></button>
+				<button class="adminBtnPrimary" type="submit"><span>Sign in</span><span aria-hidden="true">→</span></button>
 			</form>
 
-			<?php if ($needsSetup): ?>
-				<p class="sectionDesc" style="margin-top:16px">
-					No admin account yet. <a href="setup.php">Create an admin account</a>.
-				</p>
-			<?php endif; ?>
+				<?php if ($needsSetup): ?>
+					<p class="sectionDesc" style="margin-top:20px;margin-bottom:0;text-align:center">
+						No admin account yet. <a href="setup.php">Create an admin account</a>.
+					</p>
+				<?php endif; ?>
+			</form>
 		</div>
 	</div>
 </body>

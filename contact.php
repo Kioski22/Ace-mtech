@@ -1,9 +1,35 @@
+<?php
+require_once __DIR__ . "/includes/repository.php";
+
+$siteLogoPath = get_site_logo_path();
+?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="theme-color" content="#16a34a" />
+	<script>
+		(function () {
+			var THEME_KEY = 'acemtech_theme';
+			var fallbackTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+			try {
+				var theme = localStorage.getItem(THEME_KEY);
+				if (theme !== 'light' && theme !== 'dark') {
+					var legacyTheme = localStorage.getItem('theme');
+					if (legacyTheme === 'light' || legacyTheme === 'dark') {
+						theme = legacyTheme;
+						localStorage.setItem(THEME_KEY, legacyTheme);
+					} else {
+						theme = fallbackTheme;
+					}
+				}
+				document.documentElement.setAttribute('data-theme', theme);
+			} catch (error) {
+				document.documentElement.setAttribute('data-theme', fallbackTheme);
+			}
+		})();
+	</script>
 	<title>Ace‑mtech Group | Contact</title>
 	<meta name="description" content="Contact Ace‑mtech Group for construction, engineering, and HVAC services." />
 	<link rel="stylesheet" href="styles.css" />
@@ -16,7 +42,7 @@
 		<div class="container">
 			<nav class="nav" aria-label="Primary">
 				<a class="brand" href="index.php" aria-label="Ace-mtech Home">
-					<img src="source_img/Ace-mtech-logo.png" alt="Ace-mtech logo" class="mark" />
+					<img src="<?php echo htmlspecialchars($siteLogoPath); ?>" alt="Ace-mtech logo" class="mark" />
 					<span>
 						<span class="title">Ace‑Mtech Group Inc.</span>
 						<span class="tag">Architectural • Civil • Electrical • Mechanical</span>
@@ -131,7 +157,11 @@
 
 					<div class="contactCard">
 						<h3>Quick message</h3>
-						<form id="contactForm">
+						<form id="contactForm" action="send-contact.php" method="post" novalidate>
+							<div class="hp-field" aria-hidden="true">
+								<label for="website">Website</label>
+								<input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+							</div>
 							<div>
 								<label for="name">Name</label>
 								<input id="name" name="name" type="text" autocomplete="name" placeholder="Your name" required />
@@ -152,8 +182,9 @@
 								<span>Send Email</span>
 								<span aria-hidden="true">→</span>
 							</button>
+							<div class="formStatus" id="contactStatus" role="status" aria-live="polite"></div>
 							<div class="formHelp">
-								This opens your email app using <span style="font-family:var(--mono)">mailto:</span> (static site; no server processing).
+								This sends directly from the site using SMTP (no email app required).
 							</div>
 						</form>
 					</div>

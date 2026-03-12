@@ -1,9 +1,35 @@
+<?php
+require_once __DIR__ . "/includes/repository.php";
+
+$siteLogoPath = get_site_logo_path();
+?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="theme-color" content="#16a34a" />
+	<script>
+		(function () {
+			var THEME_KEY = 'acemtech_theme';
+			var fallbackTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+			try {
+				var theme = localStorage.getItem(THEME_KEY);
+				if (theme !== 'light' && theme !== 'dark') {
+					var legacyTheme = localStorage.getItem('theme');
+					if (legacyTheme === 'light' || legacyTheme === 'dark') {
+						theme = legacyTheme;
+						localStorage.setItem(THEME_KEY, legacyTheme);
+					} else {
+						theme = fallbackTheme;
+					}
+				}
+				document.documentElement.setAttribute('data-theme', theme);
+			} catch (error) {
+				document.documentElement.setAttribute('data-theme', fallbackTheme);
+			}
+		})();
+	</script>
 	<title>Ace‑mtech Group | Work</title>
 	<meta name="description" content="Explore Ace‑mtech Group services across architectural, civil, electrical, and mechanical engineering." />
 	<link rel="stylesheet" href="styles.css" />
@@ -16,7 +42,7 @@
 		<div class="container">
 			<nav class="nav" aria-label="Primary">
 				<a class="brand" href="index.php" aria-label="Ace-mtech Home">
-					<img src="source_img/Ace-mtech-logo.png" alt="Ace-mtech logo" class="mark" />
+					<img src="<?php echo htmlspecialchars($siteLogoPath); ?>" alt="Ace-mtech logo" class="mark" />
 					<span>
 						<span class="title">Ace‑Mtech Group Inc.</span>
 						<span class="tag">Architectural • Civil • Electrical • Mechanical</span>

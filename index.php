@@ -1,8 +1,12 @@
 <?php
 require_once __DIR__ . "/includes/data.php";
+require_once __DIR__ . "/includes/repository.php";
 
 $clients = load_items("clients");
 $partners = load_items("partners");
+$products = get_products();
+$newsPosts = get_news_posts();
+$siteLogoPath = get_site_logo_path();
 ?>
 <!doctype html>
 <html lang="en">
@@ -10,6 +14,27 @@ $partners = load_items("partners");
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<meta name="theme-color" content="#16a34a" />
+	<script>
+		(function () {
+			var THEME_KEY = 'acemtech_theme';
+			var fallbackTheme = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+			try {
+				var theme = localStorage.getItem(THEME_KEY);
+				if (theme !== 'light' && theme !== 'dark') {
+					var legacyTheme = localStorage.getItem('theme');
+					if (legacyTheme === 'light' || legacyTheme === 'dark') {
+						theme = legacyTheme;
+						localStorage.setItem(THEME_KEY, legacyTheme);
+					} else {
+						theme = fallbackTheme;
+					}
+				}
+				document.documentElement.setAttribute('data-theme', theme);
+			} catch (error) {
+				document.documentElement.setAttribute('data-theme', fallbackTheme);
+			}
+		})();
+	</script>
 <title>Ace‑mtech Group | Construction & Engineering Company</title>
   <meta name="description" content="Ace‑mtech Group provides architectural, civil, electrical, and mechanical engineering services. Construction, building automation, HVAC, fire protection, and maintenance solutions." />
 
@@ -371,6 +396,109 @@ $partners = load_items("partners");
 			border-color: var(--brand);
 		}
 		.card p{margin:0; color: var(--muted); line-height:1.75; font-size: 15px}
+		.productMedia{
+			margin-bottom: 14px;
+			border: 1px solid var(--stroke);
+			border-radius: 14px;
+			background: #ffffff;
+			padding: 14px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 120px;
+		}
+		.productMedia img{
+			max-width: 100%;
+			max-height: 95px;
+			object-fit: contain;
+			display: block;
+		}
+		.newsFeed{
+			display: grid;
+			grid-template-columns: minmax(0, 760px);
+			justify-content: center;
+			gap: 16px;
+		}
+		.newsPost{
+			border: 1px solid var(--stroke);
+			border-radius: 18px;
+			background: var(--panel);
+			box-shadow: var(--shadow-card);
+			overflow: hidden;
+		}
+		.newsHead{
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 16px 18px 10px;
+		}
+		.newsAvatar{
+			width: 46px;
+			height: 46px;
+			border-radius: 999px;
+			background: linear-gradient(135deg, var(--brand), var(--accent));
+			color: #fff;
+			font-weight: 800;
+			font-size: 16px;
+			display: grid;
+			place-items: center;
+		}
+		.newsMeta b{
+			display: block;
+			font-size: 15px;
+			color: var(--text-heading);
+		}
+		.newsMeta span{
+			font-size: 12px;
+			color: var(--muted);
+		}
+		.newsBody{
+			padding: 0 18px 14px;
+		}
+		.newsBody h3{
+			margin: 0 0 8px;
+			font-size: 21px;
+		}
+		.newsText{
+			color: var(--text);
+			line-height: 1.75;
+			white-space: pre-wrap;
+		}
+		.newsImage{
+			border-top: 1px solid var(--stroke);
+			border-bottom: 1px solid var(--stroke);
+			margin-top: 14px;
+		}
+		.newsImage img{
+			width: 100%;
+			display: block;
+			max-height: 480px;
+			object-fit: cover;
+		}
+		.newsFoot{
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 12px 18px 14px;
+			color: var(--muted);
+			font-size: 13px;
+		}
+		.newsBadge{
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+		}
+		.newsBadge i{
+			width: 18px;
+			height: 18px;
+			border-radius: 999px;
+			background: linear-gradient(135deg, #3b82f6, #2563eb);
+			color: #fff;
+			font-style: normal;
+			display: grid;
+			place-items: center;
+			font-size: 11px;
+		}
 
 		.icon{
 			width:56px; height:56px;
@@ -567,6 +695,7 @@ $partners = load_items("partners");
 			.ctaPanel{padding: 28px}
 			.hero{padding: 40px 0 20px}
 			h1{font-size: clamp(32px, 8vw, 48px)}
+			.newsBody h3{font-size:19px}
 		}
 
 		@media (prefers-reduced-motion: reduce){
@@ -594,7 +723,7 @@ $partners = load_items("partners");
 		<div class="container">
 			<nav class="nav" aria-label="Primary">
 				<a class="brand" href="index.php" aria-label="Ace-mtech Home">
-					<img src="source_img/Ace-mtech-logo.png" alt="Ace-mtech logo" class="mark" />
+					<img src="<?php echo htmlspecialchars($siteLogoPath); ?>" alt="Ace-mtech logo" class="mark" />
 					<span>
 						<span class="title">Ace‑Mtech Group Inc.</span>
 						<span class="tag">Architectural • Civil • Electrical • Mechanical</span>
@@ -796,51 +925,69 @@ $partners = load_items("partners");
 				</div>
 
 				<div class="grid">
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="3" y="11" width="18" height="10" rx="2" />
-								<path d="M7 11V7a5 5 0 0 1 10 0v4" />
-							</svg>
-						</div>
-						<h3>Daikin</h3>
-						<p>Authorized dealer for Daikin air conditioning systems. VRV, split-type, and multi-split units for residential and commercial applications.</p>
-					</article>
+					<?php if ($products): ?>
+						<?php foreach ($products as $product): ?>
+							<article class="card">
+								<?php if (!empty($product["image_path"])): ?>
+									<div class="productMedia">
+										<img src="<?php echo htmlspecialchars($product["image_path"]); ?>" alt="<?php echo htmlspecialchars($product["name"]); ?>" loading="lazy" />
+									</div>
+								<?php endif; ?>
+								<h3><?php echo htmlspecialchars($product["name"]); ?></h3>
+								<?php if (!empty($product["description"])): ?>
+									<p><?php echo htmlspecialchars($product["description"]); ?></p>
+								<?php else: ?>
+									<p>Authorized dealer and certified installer. Contact us for pricing and availability.</p>
+								<?php endif; ?>
+							</article>
+						<?php endforeach; ?>
+					<?php else: ?>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="3" y="11" width="18" height="10" rx="2" />
+									<path d="M7 11V7a5 5 0 0 1 10 0v4" />
+								</svg>
+							</div>
+							<h3>Daikin</h3>
+							<p>Authorized dealer for Daikin air conditioning systems. VRV, split-type, and multi-split units for residential and commercial applications.</p>
+						</article>
 
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="2" y="7" width="20" height="14" rx="2" />
-								<path d="M16 3v4" />
-								<path d="M8 3v4" />
-								<path d="M2 11h20" />
-							</svg>
-						</div>
-						<h3>Samsung</h3>
-						<p>Authorized dealer for Samsung air conditioning and appliances. Digital inverter technology, smart home integration, and energy-efficient systems.</p>
-					</article>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="2" y="7" width="20" height="14" rx="2" />
+									<path d="M16 3v4" />
+									<path d="M8 3v4" />
+									<path d="M2 11h20" />
+								</svg>
+							</div>
+							<h3>Samsung</h3>
+							<p>Authorized dealer for Samsung air conditioning and appliances. Digital inverter technology, smart home integration, and energy-efficient systems.</p>
+						</article>
 
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<circle cx="12" cy="12" r="10" />
-								<path d="M12 6v6l4 2" />
-							</svg>
-						</div>
-						<h3>LG</h3>
-						<p>Authorized dealer for LG air conditioning systems and appliances. Multi V VRF systems, residential AC units, and smart appliances.</p>
-					</article>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<circle cx="12" cy="12" r="10" />
+									<path d="M12 6v6l4 2" />
+								</svg>
+							</div>
+							<h3>LG</h3>
+							<p>Authorized dealer for LG air conditioning systems and appliances. Multi V VRF systems, residential AC units, and smart appliances.</p>
+						</article>
 
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-								<circle cx="12" cy="7" r="4" />
-							</svg>
-						</div>
-						<h3>Carrier</h3>
-						<p>Authorized dealer for Carrier HVAC systems. Commercial and industrial air conditioning, chillers, and building management solutions.</p>
-					</article>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+									<circle cx="12" cy="7" r="4" />
+								</svg>
+							</div>
+							<h3>Carrier</h3>
+							<p>Authorized dealer for Carrier HVAC systems. Commercial and industrial air conditioning, chillers, and building management solutions.</p>
+						</article>
+					<?php endif; ?>
 
 					<article class="card wide">
 						<h3>Professional Installation & Support</h3>
@@ -858,6 +1005,54 @@ $partners = load_items("partners");
 						</p>
 					</article>
 				</div>
+			</section>
+
+			<section id="news" aria-label="News and achievements">
+				<div class="sectionHead">
+					<div>
+						<h2>News & Achievements</h2>
+						<p class="sectionDesc">Latest company milestones and updates, presented in a familiar social post format.</p>
+					</div>
+				</div>
+
+				<?php if ($newsPosts): ?>
+					<div class="newsFeed">
+						<?php foreach ($newsPosts as $post): ?>
+							<?php
+								$authorName = trim((string)($post["author_name"] ?? "Ace-mtech Group"));
+								$avatarLabel = strtoupper(substr($authorName !== "" ? $authorName : "A", 0, 1));
+								$publishedAt = !empty($post["created_at"]) ? date("M j, Y · g:i A", strtotime((string)$post["created_at"])) : "Recent update";
+							?>
+							<article class="newsPost" aria-label="News post: <?php echo htmlspecialchars((string)$post["title"]); ?>">
+								<div class="newsHead">
+									<div class="newsAvatar" aria-hidden="true"><?php echo htmlspecialchars($avatarLabel); ?></div>
+									<div class="newsMeta">
+										<b><?php echo htmlspecialchars($authorName); ?></b>
+										<span><?php echo htmlspecialchars($publishedAt); ?></span>
+									</div>
+								</div>
+								<div class="newsBody">
+									<h3><?php echo htmlspecialchars((string)$post["title"]); ?></h3>
+									<p class="newsText"><?php echo nl2br(htmlspecialchars((string)$post["content"])); ?></p>
+									<?php if (!empty($post["image_path"])): ?>
+										<div class="newsImage">
+											<img src="<?php echo htmlspecialchars((string)$post["image_path"]); ?>" alt="<?php echo htmlspecialchars((string)$post["title"]); ?>" loading="lazy" />
+										</div>
+									<?php endif; ?>
+								</div>
+								<div class="newsFoot">
+									<span class="newsBadge"><i>f</i> Ace-mtech update</span>
+									<span>Like · Comment · Share</span>
+								</div>
+							</article>
+						<?php endforeach; ?>
+					</div>
+				<?php else: ?>
+					<article class="card wide">
+						<h3>News feed coming soon</h3>
+						<p>Company announcements and achievements will appear here as soon as new posts are published by the admin team.</p>
+					</article>
+				<?php endif; ?>
 			</section>
 
 			<section id="clients" aria-label="Clients">
@@ -1051,7 +1246,7 @@ $partners = load_items("partners");
 	</footer>
 
 		<!-- Messenger Floating Button and Popup UI for Users -->
-		<link rel="stylesheet" href="admin/messages/messenger.css">
+		<link rel="stylesheet" href="admin/messages/messenger-public.css">
 		<div id="messenger-fab" title="Messages" style="position:fixed;bottom:20px;right:20px;z-index:2147483647;display:flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;background:#16a34a;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,0.12);">
 			<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
 			<span id="fab-badge" data-count="0" style="position:absolute;top:-6px;right:-6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;font-weight:700;line-height:20px;box-shadow:0 4px 12px rgba(0,0,0,0.12)"></span>
@@ -1102,18 +1297,21 @@ $partners = load_items("partners");
 		<script type="module" src="admin/messages/messenger.js"></script>
 	<script>
 		(function () {
-			// Dark mode toggle
-			var themeToggle = document.getElementById('themeToggle');
+			var THEME_KEY = 'acemtech_theme';
 			var html = document.documentElement;
-			var sunIcon = themeToggle.querySelector('.sun');
-			var moonIcon = themeToggle.querySelector('.moon');
-			
-			// Check for saved theme preference or default to 'light'
-			var currentTheme = localStorage.getItem('theme') || 'light';
-			html.setAttribute('data-theme', currentTheme);
-			updateThemeIcon(currentTheme);
-			
+			var themeToggle = document.getElementById('themeToggle');
+
 			function updateThemeIcon(theme) {
+				if (!themeToggle) {
+					return;
+				}
+
+				var sunIcon = themeToggle.querySelector('.sun');
+				var moonIcon = themeToggle.querySelector('.moon');
+				if (!sunIcon || !moonIcon) {
+					return;
+				}
+
 				if (theme === 'dark') {
 					sunIcon.style.display = 'none';
 					moonIcon.style.display = 'block';
@@ -1122,14 +1320,19 @@ $partners = load_items("partners");
 					moonIcon.style.display = 'none';
 				}
 			}
-			
-			themeToggle.addEventListener('click', function() {
-				var theme = html.getAttribute('data-theme');
-				var newTheme = theme === 'light' ? 'dark' : 'light';
-				html.setAttribute('data-theme', newTheme);
-				localStorage.setItem('theme', newTheme);
-				updateThemeIcon(newTheme);
-			});
+
+			var initialTheme = html.getAttribute('data-theme') || 'light';
+			updateThemeIcon(initialTheme);
+
+			if (themeToggle) {
+				themeToggle.addEventListener('click', function() {
+					var theme = html.getAttribute('data-theme');
+					var newTheme = theme === 'light' ? 'dark' : 'light';
+					html.setAttribute('data-theme', newTheme);
+					localStorage.setItem(THEME_KEY, newTheme);
+					updateThemeIcon(newTheme);
+				});
+			}
 
 			// Menu toggle
 			var menuBtn = document.getElementById('menuBtn');

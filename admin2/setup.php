@@ -44,23 +44,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $canSetup) {
 	<title>Create Admin</title>
 	<link rel="stylesheet" href="../styles.css" />
 	<style>
-		body{background:var(--bg-soft)}
-		.loginShell{max-width:520px;margin:0 auto;padding:48px 24px}
-		.loginCard{border:1px solid var(--stroke);background:var(--panel);border-radius:20px;padding:28px;box-shadow:var(--shadow-sm)}
-		.formRow{margin-bottom:14px}
-		.formRow label{display:block;font-weight:600;margin-bottom:6px}
-		.formRow input{width:100%;padding:12px 14px;border:1px solid var(--stroke);border-radius:12px;background:#fff}
-		.alert{padding:12px 14px;border-radius:12px;margin-bottom:16px}
-		.alert.error{background:#fee2e2;border:1px solid #fecaca;color:#991b1b}
-		.alert.success{background:#dcfce7;border:1px solid #bbf7d0;color:#166534}
+		*{margin:0;padding:0;box-sizing:border-box}
+		body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+		.loginShell{max-width:520px;width:100%}
+		.loginCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
+		.loginCard h1{font-size:32px;font-weight:700;color:#1e293b;margin-bottom:8px;letter-spacing:-0.5px}
+		.loginCard .sectionDesc{color:#64748b;font-size:15px;margin-bottom:32px}
+		.formRow{margin-bottom:20px}
+		.formRow label{display:block;font-weight:600;margin-bottom:8px;color:#334155;font-size:14px}
+		.formRow input{width:100%;padding:14px 16px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:15px;transition:all .2s}
+		.formRow input:focus{outline:none;border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,0.1)}
+		.adminBtnPrimary{background:linear-gradient(135deg,#16a34a 0%,#059669 100%);color:#fff;border:none;padding:14px 28px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;transition:all .3s;box-shadow:0 4px 12px rgba(22,163,74,0.3);width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+		.adminBtnPrimary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(22,163,74,0.4)}
+		.alert{padding:14px 18px;border-radius:10px;margin-bottom:20px;font-size:14px}
+		.alert.error{background:#fee2e2;border:1.5px solid #fecaca;color:#991b1b}
+		.alert.success{background:#d1fae5;border:1.5px solid #a7f3d0;color:#065f46}
 	</style>
 </head>
 <body>
 	<div class="loginShell">
-		<h1 style="margin-bottom:10px">Create admin</h1>
-		<p class="sectionDesc" style="margin-bottom:22px">Set up an admin account for the dashboard.</p>
-
 		<div class="loginCard">
+			<h1>Create Admin</h1>
+			<p class="sectionDesc">Set up an admin account for the dashboard.</p>
 			<?php if ($error): ?>
 				<div class="alert error"><?php echo htmlspecialchars($error); ?></div>
 			<?php elseif ($success): ?>
@@ -81,13 +86,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && $canSetup) {
 						<label for="confirm_password">Confirm password</label>
 						<input id="confirm_password" name="confirm_password" type="password" minlength="8" required />
 					</div>
-					<button class="cta" type="submit"><span>Create admin</span><span aria-hidden="true">→</span></button>
+					<button class="adminBtnPrimary" type="submit"><span>Create admin</span><span aria-hidden="true">→</span></button>
+				</form>
 				</form>
 			<?php else: ?>
-				<p class="sectionDesc" style="margin:0">Admin setup is disabled. Please sign in.</p>
-				<div style="margin-top:16px">
-					<a class="cta" href="login.php"><span>Go to login</span><span aria-hidden="true">→</span></a>
-				</div>
+				<p class="sectionDesc" style="margin-bottom:20px">Admin setup is disabled. Please sign in.</p>
+				<a class="adminBtnPrimary" href="login.php"><span>Go to login</span><span aria-hidden="true">→</span></a>
 			<?php endif; ?>
 		</div>
 	</div>

@@ -1,171 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Messaging Panel</title>
-    <link rel="stylesheet" href="messenger.css">
-    <style>
-        body { background: #f8fffb; font-family: Arial, sans-serif; }
-        .admin-container { width: 95%; max-width: 1200px; margin: 28px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); padding: 0; display: flex; height: 80vh; min-height: 600px; }
-        .admin-left { width: 300px; border-right: 1.5px solid #e5e7eb; display: flex; flex-direction: column; height: 100%; }
-        .admin-header { background: #22c55e; color: #fff; font-size: 1.5rem; font-weight: bold; padding: 20px 24px; border-radius: 18px 0 0 0; }
-        .header-controls { display:flex; gap:8px; align-items:center }
-        .settings-btn { background: rgba(255,255,255,0.08); color:#fff; border:none; padding:6px 10px; border-radius:8px; cursor:pointer; font-weight:600 }
-        .settings-panel { position:absolute; left:20px; top:68px; background:#fff; color:#111; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.12); padding:12px; display:none; z-index:2147483649 }
-        .settings-panel label{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0}
-        .ticket-list { display: flex; flex-direction: column; gap: 22px; padding: 22px 12px 22px 12px; overflow:auto; }
-        .ticket-card {
-            background: #fff;
-            border-radius: 14px;
-            width: 100%;
-            min-height: 110px;
-            box-shadow: 0 4px 24px rgba(34,197,94,0.10), 0 1.5px 0 #22c55e;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px 18px;
-            cursor: pointer;
-            transition: box-shadow 0.2s, border 0.2s;
-            border: 2px solid #e5e7eb;
-            margin-bottom: 2px;
-        }
-        .ticket-card.selected, .ticket-card:hover {
-            box-shadow: 0 6px 32px rgba(34,197,94,0.18), 0 2px 0 #22c55e;
-            border: 2.5px solid #22c55e;
-            background: #f0fdf4;
-        }
-        .ticket-unread { background:#ef4444;color:#fff;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:700;margin-left:8px;display:inline-block }
-        .ticket-card.selected, .ticket-card:hover { box-shadow: 0 4px 16px rgba(34,197,94,0.12); border: 2px solid #22c55e; }
-        .ticket-title { font-weight: 700; font-size: 11px; }
-        .ticket-status { background: #22c55e; color: #fff; font-size: 11px; border-radius: 8px; padding: 2px 10px; display: inline-block; margin-top: 4px; }
-        .ticket-date { font-size: 11px; color: #6b7280; margin-top: 10px; }
-        .admin-right { flex: 1; display: flex; flex-direction: column; height: 100%; }
-        .conversation-panel { display: none; flex-direction: column; height: 100%; min-height: 500px; }
-        .conversation-panel.active { display: flex; flex-direction: column; height: 100%; }
-        .conversation-header { background: #22c55e; color: #fff; padding: 16px 24px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; border-radius: 0 18px 0 0; font-size: 1.25rem; }
-        .close-conversation { background: none; border: none; color: #fff; font-size: 22px; cursor: pointer; }
-        .messages-view { flex: 1; overflow-y: auto; padding: 18px 20px; background: #f8fffb; display: flex; flex-direction: column; align-items: stretch; gap: 12px; min-height: 0; }
-        /* Override messenger.css which hides #messages-view */
-        #messages-view { display: flex !important; }
-        /* Ensure the message input stays at the bottom of the panel, not the page */
-        .admin-message-form {
-            width: 100%;
-            display: flex;
-            gap: 8px;
-            padding: 12px 12px 16px 12px;
-            box-sizing: border-box;
-            border-top: 1.5px solid #e5e7eb;
-            background: #fff;
-            position: relative;
-            margin-top: auto;
-        }
-                .admin-message-bubble {
-                    background: #fff;
-                    color: #222;
-                    padding: 10px 14px;
-                    border-radius: 14px;
-                    min-width: 72px;
-                    max-width: 70%;
-                    width: auto;
-                    overflow-wrap: break-word;
-                    word-break: normal;
-                    white-space: normal;
-                    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-                    font-size: 11px;
-                    font-weight: 600;
-                    margin-bottom: 0;
-                    text-align: left;
-                    box-sizing: border-box;
-                }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACE-MTECH Admin Support</title>
+  <link rel="stylesheet" href="messenger.css" />
+  <style>
+    :root {
+      --brand-green: #004d12;
+      --bg-page: #dcdcdc;
+      --bg-sidebar: #efefef;
+      --panel-bg: #f5f5f5;
+      --text-main: #222;
+      --text-muted: #666;
+      --active-badge-bg: #95d59b;
+      --active-badge-text: #0e4a1d;
+      --closed-badge-bg: #f1b6b6;
+      --closed-badge-text: #7f1d1d;
+      --selected-ticket: #cfeec8;
+      --composer-bg: #d3d3d3;
+      --line: #b9b9b9;
+      --radius-lg: 14px;
+    }
 
-                .admin-message-time { font-size: 11px; color: #6b7280; margin-top: 6px; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      overflow: hidden;
+      display: flex;
+    }
 
-                /* Responsive bubble sizing */
-                @media (max-width: 1000px) {
-                    .admin-message-bubble { max-width: 75%; font-size: 11px; }
-                }
+    /* Admin Navigation Sidebar */
+    .adminSidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 260px;
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      color: #fff;
+      padding: 0;
+      overflow-y: auto;
+      z-index: 100;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+    }
+    .adminBrand {
+      padding: 28px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .adminBrand h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+    .adminBrand p {
+      margin: 0;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .adminNav {
+      list-style: none;
+      padding: 16px 0;
+      margin: 0;
+    }
+    .adminNav li { margin: 0; }
+    .adminNav a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      color: rgba(255, 255, 255, 0.75);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      position: relative;
+    }
+    .adminNav a:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .adminNav a.active {
+      background: linear-gradient(90deg, rgba(22, 163, 74, 0.2), transparent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .adminNav a.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.5);
+    }
+    .adminNav svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .navIconWrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .navUnreadBadge {
+      position: absolute;
+      top: -10px;
+      right: -16px;
+      min-width: 22px;
+      height: 22px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 22px;
+      text-align: center;
+      border: 2px solid #0f172a;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+      display: none;
+    }
+    .adminNavDivider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 12px 16px;
+    }
 
-                @media (max-width: 700px) {
-                    .admin-container { flex-direction: column; height: 100vh; }
-                    .admin-left { width: 100%; border-right: none; border-bottom: 1.5px solid #e5e7eb; max-height: 220px; overflow:auto; }
-                    .admin-right { width: 100%; }
-                    .messages-view { padding: 12px; }
-                    .admin-message-bubble { max-width: 85%; font-size: 11px; }
-                    .admin-message-input { height:40px; font-size:13px; }
-                }
+    .mainContent {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
 
-                @media (max-width: 420px) {
-                    .admin-message-bubble { max-width: 95%; font-size: 11px; padding: 8px 12px; }
-                    .admin-message-time { font-size: 11px; }
-                    .admin-header, .conversation-header { font-size: 1.05rem; padding: 12px 16px; }
-                    .ticket-card { min-height: 84px; padding: 12px; }
-                }
-        /* (removed duplicate .admin-message-form rule) */
-        .admin-message-input { flex: 1; border: 1.5px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; font-size: 16px; height:44px; box-sizing:border-box; }
-        .admin-send-btn { background: #22c55e; color: #fff; border: none; border-radius: 8px; padding: 10px 26px; font-weight: 700; font-size: 16px; height:44px; }
-        /* Messenger icon bubble for messaging */
-        #messenger-fab {
-          position: fixed;
-          bottom: 32px;
-          right: 32px;
-          width: 60px;
-          height: 60px;
-          background: #16a34a;
-          color: #fff;
-          border-radius: 50%;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
-          z-index: 2147483647;
-          font-size: 32px;
-          transition: background 0.2s;
-          pointer-events: auto;
-        }
-        #messenger-fab:hover {
-          background: #22c55e;
-        }
-    </style>
+    /* Top Bar */
+    .topbar {
+      height: 76px;
+      background: var(--brand-green);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      flex-shrink: 0;
+    }
+    .topbar-left, .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon-wrap {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.2);
+      display: grid;
+      place-items: center;
+    }
+    .brand-name { font-size: 28px; font-weight: 500; letter-spacing: 0.2px; }
+    .support-label { font-size: 18px; }
+
+    /* Main split layout */
+    .layout {
+      height: calc(100vh - 76px);
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      min-height: 0;
+      flex: 1;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-sidebar);
+      border-right: 1px solid #ddd;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .sidebar-head {
+      padding: 14px 18px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-title { font-size: 34px; font-weight: 500; color: #3a3a3a; }
+    .settings-btn {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #4a4a4a;
+      font-size: 18px;
+    }
+
+    .ticket-list {
+      padding: 8px 12px 14px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .ticket-card {
+      border: none;
+      width: 100%;
+      background: transparent;
+      border-radius: 12px;
+      text-align: left;
+      padding: 12px 10px;
+      display: grid;
+      grid-template-columns: 40px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      cursor: pointer;
+    }
+    .ticket-card.selected { background: var(--selected-ticket); }
+    .ticket-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: #d7d7d7;
+      display: grid;
+      place-items: center;
+      color: #434343;
+      flex-shrink: 0;
+    }
+    .ticket-main { min-width: 0; }
+    .ticket-title {
+      font-size: 15px;
+      line-height: 1.25;
+      color: #3a3a3a;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .ticket-date {
+      font-size: 12px;
+      color: #707070;
+    }
+    .ticket-status {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      white-space: nowrap;
+      align-self: end;
+    }
+    .ticket-status.active {
+      background: var(--active-badge-bg);
+      color: var(--active-badge-text);
+    }
+    .ticket-status.closed {
+      background: var(--closed-badge-bg);
+      color: var(--closed-badge-text);
+    }
+
+    /* Conversation area */
+    .main {
+      min-height: 0;
+      padding: 16px 18px;
+    }
+    .conversation-shell {
+      height: 100%;
+      background: var(--panel-bg);
+      border-radius: var(--radius-lg);
+      border: 1px solid #bdbdbd;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .conversation-meta {
+      padding: 28px 18px 8px;
+      text-align: center;
+      color: #4c4c4c;
+      flex-shrink: 0;
+    }
+    .meta-title { font-size: 31px; margin: 0; font-weight: 500; }
+    .meta-date { font-size: 34px; margin: 6px 0 0; font-weight: 400; }
+
+    .messages-view {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 10px 28px 16px;
+    }
+
+    .message-block { margin-bottom: 24px; }
+    .message-row {
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .msg-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: #d3d3d3;
+      display: grid;
+      place-items: center;
+      color: #444;
+    }
+    .msg-sender {
+      font-size: 33px;
+      margin: 2px 0 8px;
+      color: #2f2f2f;
+      font-weight: 400;
+    }
+    .msg-text {
+      font-size: 34px;
+      line-height: 1.35;
+      margin: 0 0 8px;
+      color: #1f1f1f;
+    }
+    .msg-time {
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+    }
+    .msg-divider {
+      border: 0;
+      border-top: 2px solid var(--line);
+      margin: 20px 0 24px;
+    }
+
+    .attachment-box {
+      width: 240px;
+      height: 240px;
+      background: #c8c8c8;
+      display: grid;
+      place-items: center;
+      margin-top: 12px;
+    }
+
+    .composer {
+      flex-shrink: 0;
+      padding: 14px 22px 16px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .composer-input-wrap {
+      background: var(--composer-bg);
+      border-radius: 10px;
+      padding: 0 16px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+    }
+    .composer-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 28px;
+      color: #333;
+    }
+    .composer-input::placeholder { color: #5f5f5f; }
+
+    .composer-actions {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: #2f2f2f;
+    }
+    .action-btn {
+      border: none;
+      background: transparent;
+      font-size: 31px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: inherit;
+    }
+
+    .hidden-file-input { display: none; }
+
+    /* Category indicator badge (new feature hook) */
+    .category-indicator {
+      margin: 0 28px 10px;
+      font-size: 14px;
+      color: #2e5e3a;
+      background: #dff2e4;
+      border: 1px solid #b8e2c5;
+      border-radius: 999px;
+      display: inline-block;
+      padding: 6px 10px;
+      width: fit-content;
+    }
+
+    @media (max-width: 980px) {
+      .adminSidebar { width: 70px; }
+      .adminSidebar .adminBrand h2,
+      .adminSidebar .adminBrand p,
+      .adminNav span { display: none; }
+      .adminNav a { justify-content: center; padding: 14px; }
+      .mainContent { margin-left: 70px; }
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { height: 230px; border-right: none; border-bottom: 1px solid #ddd; }
+      .main { padding: 10px; }
+      .meta-title { font-size: 22px; }
+      .meta-date { font-size: 24px; }
+      .msg-sender { font-size: 20px; }
+      .msg-text { font-size: 22px; }
+      .composer-input { font-size: 18px; }
+      .action-btn { font-size: 18px; }
+    }
+  </style>
 </head>
 <body>
-    <!-- Toast container for notifications (top-right) -->
-    <div id="toast-container" style="position:fixed;right:20px;top:20px;z-index:2147483650;display:flex;flex-direction:column;gap:10px;pointer-events:none"></div>
-
-    <div class="admin-container">
-                <div class="admin-left">
-                        <div style="position:relative;">
-                            <div class="admin-header" style="display:flex;align-items:center;justify-content:space-between">
-                                <span>Inquiries</span>
-                                <div class="header-controls">
-                                    <button class="settings-btn" id="settings-btn">Settings</button>
-                                </div>
-                            </div>
-                            <div class="settings-panel" id="settings-panel">
-                                <label><input type="checkbox" id="pref-toast" checked /> Show toasts</label>
-                                <label><input type="checkbox" id="pref-sound" /> Play sound</label>
-                                <label><input type="checkbox" id="pref-desktop" /> Desktop notifications</label>
-                                <div style="font-size:12px;color:#666;margin-top:8px">Preferences saved in browser.</div>
-                            </div>
-                        </div>
-            <div class="ticket-list" id="ticket-list"></div>
-        </div>
-        <div class="admin-right">
-            <div class="conversation-panel" id="conversation-panel">
-                <div class="conversation-header">
-                    <span id="conversation-title">Ticket</span>
-                    <button class="close-conversation" id="close-conversation">&times;</button>
-                </div>
-                <div class="messages-view" id="messages-view"></div>
-                <form class="admin-message-form" id="message-form">
-                    <input class="admin-message-input" id="message-input" type="text" placeholder="Type your message..." autocomplete="off" />
-                    <button class="admin-send-btn" id="send-message" type="submit">Send</button>
-                </form>
-            </div>
-        </div>
+  <!-- Admin Navigation Sidebar -->
+  <aside class="adminSidebar">
+    <div class="adminBrand">
+      <h2>Ace-mtech</h2>
+      <p>Admin Panel</p>
     </div>
-    <!-- Messenger Floating Button removed for admin screen -->
-    <script type="module" src="messenger-admin.js"></script>
+    <ul class="adminNav">
+      <li><a href="../../admin2/index.php"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>Dashboard</span></a></li>
+      <li class="adminNavDivider"></li>
+      <li><a href="../../admin2/clients.php"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Clients</span></a></li>
+      <li><a href="../../admin2/partners.php"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg><span>Partners</span></a></li>
+      <li><a href="../../admin2/products.php"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Products</span></a></li>
+      <li><a href="../../admin2/gallery.php"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Gallery</span></a></li>
+      <li><a href="../../admin2/news.php"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>News</span></a></li>
+      <li><a href="../../admin2/social-links.php"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>Social Links</span></a></li>
+      <li class="adminNavDivider"></li>
+      <li><a href="admin.html" class="active"><span class="navIconWrap"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span id="messages-unread-badge" class="navUnreadBadge" aria-label="Unread inquiries">0</span></span><span>Messages</span></a></li>
+      <li><a href="../../index.php"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>View Site</span></a></li>
+      <li><a href="../../admin2/logout.php"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Log Out</span></a></li>
+    </ul>
+  </aside>
+
+  <div class="mainContent">
+  <!-- Top nav -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand-icon-wrap" aria-hidden="true">🖼️</div>
+      <div class="brand-name">ACE-MTECH</div>
+    </div>
+    <div class="topbar-right">
+      <span class="support-label">Admin Support</span>
+      <button class="action-btn" id="logout-btn" aria-label="Logout">⤴</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h2 class="sidebar-title">Inquiries</h2>
+        <button class="settings-btn" id="settings-btn" aria-label="Open settings">⚙</button>
+      </div>
+      <div class="ticket-list" id="ticket-list">
+        <!-- JS renders tickets -->
+      </div>
+    </aside>
+
+    <!-- Conversation -->
+    <section class="main">
+      <div class="conversation-shell" id="conversation-panel">
+        <div class="conversation-meta">
+          <p class="meta-title">Message Started</p>
+          <p class="meta-date" id="conversation-start-date">Mar 6, 2026 11:15AM</p>
+        </div>
+
+        <!-- New category output hook -->
+        <div class="category-indicator" id="category-indicator" style="display:none;">
+          Category: <span id="category-text">General Inquiry</span>
+        </div>
+
+        <div class="messages-view" id="messages-view">
+          <!-- JS renders messages -->
+          <!-- static fallback to match screenshot -->
+          <article class="message-block">
+            <div class="message-row">
+              <div class="msg-avatar">👤</div>
+              <div>
+                <h3 class="msg-sender">Ticket 153</h3>
+                <p class="msg-text">What services are you offering?</p>
+                <div class="msg-time">SENT 11:15AM</div>
+              </div>
+            </div>
+            <hr class="msg-divider" />
+          </article>
+
+          <article class="message-block">
+            <div class="message-row">
+              <div class="msg-avatar">👤</div>
+              <div>
+                <h3 class="msg-sender">Admin Support (Me)</h3>
+                <p class="msg-text">Please see the attached photo to view offers or you can go to the sites, click the link below.</p>
+                <div class="attachment-box">🖼️</div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <form class="composer" id="message-form">
+          <div class="composer-input-wrap">
+            <label for="message-input" class="sr-only" style="position:absolute;left:-99999px;">Type your message</label>
+            <input
+              id="message-input"
+              class="composer-input"
+              type="text"
+              placeholder="Type your message.."
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="composer-actions">
+            <button type="submit" class="action-btn" id="send-message" aria-label="Send message">✈ SEND</button>
+            <button type="button" class="action-btn" id="files-trigger" aria-label="Attach files">⤴ FILES</button>
+            <input id="files-input" class="hidden-file-input" type="file" multiple />
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <script type="module" src="messenger-admin.js"></script>
 </body>
 </html>

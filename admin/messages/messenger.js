@@ -85,40 +85,49 @@ function formatDate(ts) {
   return d.toLocaleString();
 }
 
-fab.addEventListener('click', () => {
-  popup.classList.toggle('active');
-  if (popup.classList.contains('active')) {
-    // user opened the messenger: clear badge/tab counter
-    clearTab();
-  }
-  if (ticketId) loadMessages();
-});
-closeBtn.addEventListener('click', () => {
-  popup.classList.remove('active');
-});
+if (fab && popup) {
+  fab.addEventListener('click', () => {
+    popup.classList.toggle('active');
+    if (popup.classList.contains('active')) {
+      // user opened the messenger: clear badge/tab counter
+      clearTab();
+    }
+    if (ticketId) loadMessages();
+  });
+}
 
-messageForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = messageInput.value.trim();
-  if (!text) return;
-  if (!ticketId) {
-    // Create a new ticket for this user session
-    ticketName = `Ticket ${Math.floor(100 + Math.random() * 900)}`;
-    const ticketRef = push(ref(db, 'tickets'));
-    ticketId = ticketRef.key;
-    set(ticketRef, {
-      subject: ticketName,
-      messages: {}
-    }).then(() => {
+if (closeBtn && popup) {
+  closeBtn.addEventListener('click', () => {
+    popup.classList.remove('active');
+  });
+}
+
+if (messageForm && messageInput) {
+  messageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = messageInput.value.trim();
+    if (!text) return;
+    if (!ticketId) {
+      // Create a new ticket for this user session
+      ticketName = `Ticket ${Math.floor(100 + Math.random() * 900)}`;
+      const ticketRef = push(ref(db, 'tickets'));
+      ticketId = ticketRef.key;
+      set(ticketRef, {
+        subject: ticketName,
+        messages: {}
+      }).then(() => {
+        sendMessage(text, 'user');
+        if (headerTitle) {
+          headerTitle.textContent = ticketName;
+        }
+        loadMessages();
+      });
+    } else {
       sendMessage(text, 'user');
-      headerTitle.textContent = ticketName;
-      loadMessages();
-    });
-  } else {
-    sendMessage(text, 'user');
-  }
-  messageInput.value = '';
-});
+    }
+    messageInput.value = '';
+  });
+}
 
 function sendMessage(text, sender) {
   const msgRef = push(ref(db, `tickets/${ticketId}/messages`));
@@ -130,7 +139,7 @@ function sendMessage(text, sender) {
 }
 
 function loadMessages() {
-  if (!ticketId) return;
+  if (!ticketId || !messagesView) return;
   onValue(ref(db, `tickets/${ticketId}/messages`), (snapshot) => {
     const data = snapshot.val();
     let html = '';

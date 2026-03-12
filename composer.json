@@ -1,0 +1,7 @@
+{
+  "name": "acemtech/site",
+  "description": "Ace-mtech website",
+  "require": {
+    "phpmailer/phpmailer": "^6.9"
+  }
+}
