@@ -75,6 +75,15 @@
   padding: 12px 14px;
 }
 
+/* Chat-first layout (hide the intake form) */
+.messenger-start {
+  display: none;
+}
+
+.messenger-chat {
+  display: block;
+}
+
 .messenger-start-title {
   margin: 0 0 10px;
   font-size: 13px;
@@ -158,6 +167,7 @@
 
 .message-content {
   max-width: 82%;
+  min-width: 0;
 }
 
 .message-bubble {
@@ -165,6 +175,8 @@
   padding: 8px 10px;
   font-size: 13px;
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .message-bubble.user {
@@ -187,7 +199,7 @@
 .message-form {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-end;
   padding: 10px 12px 12px;
   border-top: 1px solid rgba(15, 23, 42, 0.08);
   background: #ffffff;
@@ -197,8 +209,12 @@
   flex: 1;
   border: 1px solid rgba(15, 23, 42, 0.18);
   border-radius: 8px;
-  padding: 9px 10px;
+  padding: 6px 8px;
   font-size: 13px;
+  min-height: 36px;
+  resize: vertical;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 #send-message {

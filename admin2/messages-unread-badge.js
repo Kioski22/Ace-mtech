@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, onValue, ref } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  databaseURL: "https://ace-mtech-default-rtdb.firebaseio.com/"
+  databaseURL: "https://ace-mtech-eee96-default-rtdb.firebaseio.com/"
 };
 
 const BADGE_STYLE_ID = "messages-unread-badge-style";

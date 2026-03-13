@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  databaseURL: "https://ace-mtech-default-rtdb.firebaseio.com/"
+  databaseURL: "https://ace-mtech-eee96-default-rtdb.firebaseio.com/"
 };
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
@@ -13,14 +13,28 @@ const popup = document.getElementById('messenger-popup');
 const closeBtn = document.getElementById('messenger-close');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-message');
 const messagesView = document.getElementById('messages-view');
-const headerTitle = document.querySelector('#messenger-header .messenger-title');
+const headerTitle = document.querySelector('#messenger-header .messenger-title')
+  || document.querySelector('#messenger-header span');
+const headerSubtitle = document.getElementById('messenger-subtitle');
+const supportStart = document.getElementById('support-start');
+const supportChat = document.getElementById('support-chat');
+const supportStartForm = document.getElementById('support-start-form');
+const supportName = document.getElementById('support-name');
+const supportEmail = document.getElementById('support-email');
+const supportSubject = document.getElementById('support-subject');
+const supportMessage = document.getElementById('support-message');
 
 let ticketId = null;
 let ticketName = null;
+let ticketMeta = { name: '', email: '' };
 let originalTitle = document.title;
 let unreadCount = 0;
 let lastSeenTs = 0;
+const originalSubtitle = headerSubtitle ? headerSubtitle.textContent : '';
+
+const STORAGE_KEY = 'ace_mtech_ticket';
 
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, (c) => ({
@@ -85,6 +99,71 @@ function formatDate(ts) {
   return d.toLocaleString();
 }
 
+function getTicketLabel(id) {
+  if (!id) return 'Send a message';
+  const shortId = String(id).slice(-6).toUpperCase();
+  return `Ticket #${shortId}`;
+}
+
+function applyTicketHeader() {
+  if (headerTitle) {
+    headerTitle.textContent = getTicketLabel(ticketId);
+  }
+  if (headerSubtitle) {
+    if (ticketName) {
+      headerSubtitle.textContent = `Subject: ${ticketName}`;
+    } else {
+      headerSubtitle.textContent = originalSubtitle || 'We typically reply within the day.';
+    }
+  }
+}
+
+function setChatEnabled(enabled) {
+  if (messageInput) messageInput.disabled = !enabled;
+  if (sendButton) sendButton.disabled = !enabled;
+  if (supportChat) supportChat.style.display = enabled ? 'block' : 'none';
+  if (supportStart) supportStart.style.display = enabled ? 'none' : 'block';
+}
+
+function persistTicket() {
+  if (!ticketId) return;
+  const payload = {
+    ticketId,
+    subject: ticketName || '',
+    name: ticketMeta.name || '',
+    email: ticketMeta.email || ''
+  };
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  } catch (e) {}
+}
+
+function restoreTicket() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.ticketId) return false;
+    ticketId = saved.ticketId;
+    ticketName = saved.subject || 'Support Ticket';
+    ticketMeta = { name: saved.name || '', email: saved.email || '' };
+    applyTicketHeader();
+    setChatEnabled(true);
+    loadMessages();
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function clearTicket() {
+  ticketId = null;
+  ticketName = null;
+  ticketMeta = { name: '', email: '' };
+  lastSeenTs = 0;
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+
 if (fab && popup) {
   fab.addEventListener('click', () => {
     popup.classList.toggle('active');
@@ -107,25 +186,65 @@ if (messageForm && messageInput) {
     e.preventDefault();
     const text = messageInput.value.trim();
     if (!text) return;
+
     if (!ticketId) {
-      // Create a new ticket for this user session
-      ticketName = `Ticket ${Math.floor(100 + Math.random() * 900)}`;
+      // Fallback flow when the start form is not present
+      ticketName = 'General inquiry';
       const ticketRef = push(ref(db, 'tickets'));
       ticketId = ticketRef.key;
-      set(ticketRef, {
+      const payload = {
         subject: ticketName,
+        createdAt: Date.now(),
+        name: ticketMeta.name || '',
+        email: ticketMeta.email || '',
         messages: {}
-      }).then(() => {
+      };
+      set(ticketRef, payload).then(() => {
         sendMessage(text, 'user');
-        if (headerTitle) {
-          headerTitle.textContent = ticketName;
-        }
+        applyTicketHeader();
+        setChatEnabled(true);
+        persistTicket();
         loadMessages();
       });
     } else {
       sendMessage(text, 'user');
     }
     messageInput.value = '';
+  });
+}
+
+if (supportStartForm) {
+  supportStartForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const name = supportName?.value.trim() || '';
+    const email = supportEmail?.value.trim() || '';
+    const subject = supportSubject?.value.trim() || 'Project inquiry';
+    const text = supportMessage?.value.trim() || '';
+
+    if (!name || !email || !subject || !text) return;
+
+    ticketName = subject;
+    ticketMeta = { name, email };
+
+    const ticketRef = push(ref(db, 'tickets'));
+    ticketId = ticketRef.key;
+    const payload = {
+      subject: ticketName,
+      createdAt: Date.now(),
+      name,
+      email,
+      messages: {}
+    };
+
+    set(ticketRef, payload).then(() => {
+      sendMessage(text, 'user');
+      applyTicketHeader();
+      setChatEnabled(true);
+      persistTicket();
+      loadMessages();
+      supportStartForm.reset();
+    });
   });
 }
 
@@ -175,4 +294,10 @@ function loadMessages() {
       lastSeenTs = newest;
     }
   });
+}
+
+// boot
+if (!restoreTicket()) {
+  setChatEnabled(true);
+  applyTicketHeader();
 }
