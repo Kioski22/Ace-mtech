@@ -929,9 +929,9 @@ function set_site_setting(string $key, string $value): bool
 
 function get_site_logo_path(): string
 {
-	$logoPath = get_site_setting("site_logo_path", "source_img/Ace-mtech-logo.png");
+	$logoPath = get_site_setting("site_logo_path", "source_img/Ace-mtech-logo.svg");
 	if ($logoPath === null || trim($logoPath) === "") {
-		return "source_img/Ace-mtech-logo.png";
+		return "source_img/Ace-mtech-logo.svg";
 	}
 
 	return (string)$logoPath;

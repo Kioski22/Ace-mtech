@@ -264,6 +264,12 @@
       white-space: nowrap;
       align-self: end;
     }
+    .ticket-status-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      justify-self: end;
+    }
     .ticket-status.active {
       background: var(--active-badge-bg);
       color: var(--active-badge-text);
@@ -271,6 +277,13 @@
     .ticket-status.closed {
       background: var(--closed-badge-bg);
       color: var(--closed-badge-text);
+    }
+    .ticket-unread {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.25);
     }
 
     /* Conversation area */
@@ -294,8 +307,8 @@
       color: #4c4c4c;
       flex-shrink: 0;
     }
-    .meta-title { font-size: 31px; margin: 0; font-weight: 500; }
-    .meta-date { font-size: 34px; margin: 6px 0 0; font-weight: 400; }
+    .meta-title { font-size: 18px; margin: 0; font-weight: 500; }
+    .meta-date { font-size: 14px; margin: 6px 0 0; font-weight: 400; }
 
     .messages-view {
       flex: 1;
@@ -321,19 +334,21 @@
       color: #444;
     }
     .msg-sender {
-      font-size: 33px;
+      font-size: 16px;
       margin: 2px 0 8px;
       color: #2f2f2f;
-      font-weight: 400;
+      font-weight: 600;
     }
     .msg-text {
-      font-size: 34px;
+      font-size: 15px;
       line-height: 1.35;
       margin: 0 0 8px;
       color: #1f1f1f;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .msg-time {
-      font-size: 14px;
+      font-size: 11px;
       color: #666;
       text-transform: uppercase;
     }
@@ -364,7 +379,7 @@
       background: var(--composer-bg);
       border-radius: 10px;
       padding: 0 16px;
-      height: 52px;
+      height: 60px;
       display: flex;
       align-items: center;
     }
@@ -373,10 +388,15 @@
       border: none;
       outline: none;
       background: transparent;
-      font-size: 28px;
+      font-size: 15px;
       color: #333;
+      min-height: 50px;
+      resize: vertical;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      font-family: 'Poppins', sans-serif;
     }
-    .composer-input::placeholder { color: #5f5f5f; }
+    .composer-input::placeholder { color: #5f5f5f; font-family: 'Poppins', sans-serif; }
 
     .composer-actions {
       display: flex;
@@ -387,7 +407,7 @@
     .action-btn {
       border: none;
       background: transparent;
-      font-size: 31px;
+      font-size: 18px;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -421,10 +441,10 @@
       .sidebar { height: 230px; border-right: none; border-bottom: 1px solid #ddd; }
       .main { padding: 10px; }
       .meta-title { font-size: 22px; }
-      .meta-date { font-size: 24px; }
-      .msg-sender { font-size: 20px; }
-      .msg-text { font-size: 22px; }
-      .composer-input { font-size: 18px; }
+      .meta-date { font-size: 18px; }
+      .msg-sender { font-size: 18px; font-weight: bold;}
+      .msg-text { font-size: 15px; }
+      .composer-input { font-size: 15px; }
       .action-btn { font-size: 18px; }
     }
   </style>
@@ -454,7 +474,7 @@
 
   <div class="mainContent">
   <!-- Top nav -->
-  <header class="topbar">
+  <!-- <header class="topbar">
     <div class="topbar-left">
       <div class="brand-icon-wrap" aria-hidden="true">🖼️</div>
       <div class="brand-name">ACE-MTECH</div>
@@ -462,7 +482,7 @@
     <div class="topbar-right">
       <span class="support-label">Admin Support</span>
       <button class="action-btn" id="logout-btn" aria-label="Logout">⤴</button>
-    </div>
+    </div> -->
   </header>
 
   <main class="layout">
@@ -470,7 +490,6 @@
     <aside class="sidebar">
       <div class="sidebar-head">
         <h2 class="sidebar-title">Inquiries</h2>
-        <button class="settings-btn" id="settings-btn" aria-label="Open settings">⚙</button>
       </div>
       <div class="ticket-list" id="ticket-list">
         <!-- JS renders tickets -->
@@ -520,19 +539,20 @@
         <form class="composer" id="message-form">
           <div class="composer-input-wrap">
             <label for="message-input" class="sr-only" style="position:absolute;left:-99999px;">Type your message</label>
-            <input
+            <textarea
               id="message-input"
               class="composer-input"
-              type="text"
+              rows="2"
               placeholder="Type your message.."
               autocomplete="off"
-            />
+            ></textarea>
           </div>
 
           <div class="composer-actions">
-            <button type="submit" class="action-btn" id="send-message" aria-label="Send message">✈ SEND</button>
-            <button type="button" class="action-btn" id="files-trigger" aria-label="Attach files">⤴ FILES</button>
-            <input id="files-input" class="hidden-file-input" type="file" multiple />
+            <button type="submit" class="action-btn" id="send-message" aria-label="Send message">
+              <img src="../../source_img/icons/Send%20Icon.svg" alt="" width="18" height="18" />
+              SEND
+            </button>
           </div>
         </form>
       </div>

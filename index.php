@@ -1355,8 +1355,8 @@ $siteLogoPath = get_site_logo_path();
 				</div>
 			</div>
 			<form id="message-form" class="message-form">
-				<input id="message-input" type="text" placeholder="Type your message..." autocomplete="off" disabled />
-				<button id="send-message" type="submit" disabled>Send</button>
+				<textarea id="message-input" rows="2" placeholder="Type your message..." autocomplete="off"></textarea>
+				<button id="send-message" type="submit">Send</button>
 			</form>
 		</div>
 		<script type="module" src="admin/messages/messenger.js"></script>

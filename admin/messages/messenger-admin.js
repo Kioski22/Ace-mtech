@@ -27,8 +27,6 @@ const messageInputEl = document.getElementById("message-input");
 const conversationStartDateEl = document.getElementById("conversation-start-date");
 const categoryIndicatorEl = document.getElementById("category-indicator");
 const categoryTextEl = document.getElementById("category-text");
-const filesTriggerEl = document.getElementById("files-trigger");
-const filesInputEl = document.getElementById("files-input");
 const messagesUnreadBadgeEl = document.getElementById("messages-unread-badge");
 
 // Optional controls
@@ -39,7 +37,8 @@ const logoutBtn = document.getElementById("logout-btn");
 let selectedTicketId = null;
 let selectedTicketUnsubscribe = null;
 let allTickets = {};
-let pendingFiles = [];
+
+const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
 
 // ---------- helpers ----------
 function escapeHtml(str) {
@@ -50,6 +49,12 @@ function escapeHtml(str) {
     "\"": "&quot;",
     "'": "&#39;"
   }[c]));
+}
+
+function getTicketLabel(ticketId) {
+  if (!ticketId) return "Ticket";
+  const shortId = String(ticketId).slice(-6).toUpperCase();
+  return `Ticket #${shortId}`;
 }
 
 function toDateTimeText(ts) {
@@ -120,6 +125,28 @@ function latestMessageSender(messagesObj) {
   return msgs[msgs.length - 1].sender || null;
 }
 
+function getLatestUserTimestamp(messagesObj) {
+  const msgs = Object.values(messagesObj || {})
+    .filter(Boolean)
+    .filter(m => m.sender === "user")
+    .sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+
+  if (!msgs.length) return 0;
+  return msgs[msgs.length - 1].timestamp || 0;
+}
+
+function enforceAutoClose(ticketId, ticket) {
+  if (!ticketId || !ticket) return;
+  if (ticket.status === "closed") return;
+
+  const lastUserTs = getLatestUserTimestamp(ticket.messages || {});
+  if (!lastUserTs) return;
+  if (Date.now() - lastUserTs <= TWO_DAYS_MS) return;
+
+  set(ref(db, `tickets/${ticketId}/status`), "closed");
+  set(ref(db, `tickets/${ticketId}/closedAt`), Date.now());
+}
+
 function getUnreadTicketCount(ticketsObj) {
   return Object.values(ticketsObj || {}).reduce((count, ticket) => {
     const sender = latestMessageSender(ticket?.messages || {});
@@ -159,10 +186,13 @@ function renderTicketList(ticketsObj) {
   }
 
   ticketListEl.innerHTML = entries.map((ticket) => {
-    const subject = ticket.subject || `Ticket ${ticket.id.slice(0, 6)}`;
+    const subject = getTicketLabel(ticket.id);
     const createdTs = firstMessageTimestamp(ticket.messages || {});
     const dateText = toDateTimeText(createdTs);
-    const status = statusFromMessages(ticket.messages || {});
+    const status = ticket.status === "closed"
+      ? "closed"
+      : statusFromMessages(ticket.messages || {});
+    const hasUnread = latestMessageSender(ticket.messages || {}) === "user";
     const selectedClass = ticket.id === selectedTicketId ? "selected" : "";
 
     return `
@@ -172,7 +202,10 @@ function renderTicketList(ticketsObj) {
           <div class="ticket-title">${escapeHtml(subject)}</div>
           <div class="ticket-date">${escapeHtml(dateText)}</div>
         </div>
-        <div class="ticket-status ${status}">${status}</div>
+        <div class="ticket-status-wrap">
+          <div class="ticket-status ${status}">${status}</div>
+          ${hasUnread ? '<span class="ticket-unread" aria-label="New message"></span>' : ''}
+        </div>
       </button>
     `;
   }).join("");
@@ -213,7 +246,7 @@ function renderMessages(ticketId, ticket, messagesObj) {
   msgs.forEach((msg, index) => {
     const senderIsUser = msg.sender === "user";
     const senderLabel = senderIsUser
-      ? (ticket?.subject || "Ticket")
+      ? getTicketLabel(ticketId)
       : "Admin Support (Me)";
 
     html += `
@@ -254,6 +287,7 @@ function selectTicket(ticketId) {
       messagesViewEl.innerHTML = `<div style="padding:12px;color:#b91c1c;">Ticket no longer exists.</div>`;
       return;
     }
+    enforceAutoClose(ticketId, ticket);
     renderMessages(ticketId, ticket, ticket.messages || {});
   });
 }
@@ -261,6 +295,7 @@ function selectTicket(ticketId) {
 function bootTickets() {
   onValue(ref(db, "tickets"), (snapshot) => {
     allTickets = snapshot.val() || {};
+    Object.entries(allTickets).forEach(([id, ticket]) => enforceAutoClose(id, ticket));
     renderUnreadBadge(getUnreadTicketCount(allTickets));
     renderTicketList(allTickets);
 
@@ -299,8 +334,7 @@ if (messageFormEl) {
     e.preventDefault();
     const text = (messageInputEl?.value || "").trim();
 
-    // For now, require text. (File upload can be wired once backend endpoint is given)
-    if (!text && pendingFiles.length === 0) return;
+    if (!text) return;
     if (!selectedTicketId) return;
 
     try {
@@ -308,21 +342,10 @@ if (messageFormEl) {
         await sendAdminMessage(text);
       }
       messageInputEl.value = "";
-      pendingFiles = [];
-      if (filesInputEl) filesInputEl.value = "";
     } catch (err) {
       console.error("Failed to send admin message:", err);
       alert("Failed to send message. Please try again.");
     }
-  });
-}
-
-if (filesTriggerEl && filesInputEl) {
-  filesTriggerEl.addEventListener("click", () => filesInputEl.click());
-  filesInputEl.addEventListener("change", () => {
-    pendingFiles = Array.from(filesInputEl.files || []);
-    // Placeholder only. No upload endpoint provided yet.
-    // Keeps hook ready without breaking current backend.
   });
 }
 
