@@ -127,14 +127,15 @@ $siteLogoPath = get_site_logo_path();
 		}
 		.nav{
 			display:flex; align-items:center; justify-content:space-between;
-			padding: 18px 0;
-			gap: 16px;
+			padding: 10px 0;
+			gap: 8px;
 		}
 		.brand{
-			display:flex; gap:12px; align-items:center;
+			display:flex; gap:8px; align-items:center;
+			flex-shrink: 0;
 		}
 		.mark{
-			width: 100px; height:100px;
+			width: 48px; height:48px;
 			object-fit: contain;
 			transition: transform 0.3s ease, filter 0.3s ease;
 		}
@@ -143,12 +144,12 @@ $siteLogoPath = get_site_logo_path();
 			filter: brightness(1.1);
 		}
 		.brand span{display:block; line-height:1.1}
-		.brand .title{font-weight:800; letter-spacing:-.2px; font-size: 17px}
-		.brand .tag{font-size:11px; color:var(--muted); font-family:var(--mono); font-weight:500}
+		.brand .title{font-weight:800; letter-spacing:-.2px; font-size: 14px}
+		.brand .tag{font-size:9px; color:var(--muted); font-family:var(--mono); font-weight:500}
 
 		.themeToggle{
-			width:48px; height:48px;
-			border-radius:14px;
+			width:36px; height:36px;
+			border-radius:10px;
 			border:1px solid var(--stroke);
 			background: var(--panel);
 			color: var(--text);
@@ -156,6 +157,7 @@ $siteLogoPath = get_site_logo_path();
 			display:flex; align-items:center; justify-content:center;
 			transition: all 0.3s ease;
 			box-shadow: var(--shadow-sm);
+			flex-shrink: 0;
 		}
 		.themeToggle:hover{
 			background: var(--bg-soft);
@@ -163,21 +165,23 @@ $siteLogoPath = get_site_logo_path();
 			transform: translateY(-2px);
 		}
 		.themeToggle svg{
-			width:22px; height:22px;
+			width:16px; height:16px;
 			transition: transform 0.3s ease;
 		}
 		.themeToggle:hover svg{transform: rotate(20deg)}
 
 		.menuBtn{
 			display:none;
-			align-items:center; gap:8px;
+			align-items:center; gap:6px;
 			border:1px solid var(--stroke);
 			background: var(--panel);
 			color: var(--text);
-			padding:12px 16px;
-			border-radius:14px;
+			padding:8px 12px;
+			border-radius:10px;
 			cursor:pointer;
 			transition: all 0.3s ease;
+			flex-shrink: 0;
+			font-size:13px;
 		}
 		.menuBtn:hover{
 			background: var(--bg-soft);
@@ -185,16 +189,18 @@ $siteLogoPath = get_site_logo_path();
 		}
 
 		.navlinks{
-			display:flex; align-items:center; gap: 6px;
+			display:flex; align-items:center; gap: 2px;
 		}
 		.navlinks a{
-			padding:10px 16px;
+			padding:7px 10px;
 			color:var(--muted);
-			border-radius:12px;
+			border-radius:8px;
 			border: 1px solid transparent;
 			transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
 			font-weight:500;
 			position:relative;
+			font-size:13px;
+			white-space:nowrap;
 		}
 		.navlinks a:not(.cta):hover{
 			color:var(--text);
@@ -203,10 +209,52 @@ $siteLogoPath = get_site_logo_path();
 			box-shadow: var(--shadow-sm);
 		}
 
+		/* Dropdown */
+		.navDropdown{position:relative; display:inline-block}
+		.dropdownToggle{
+			display:inline-flex; align-items:center; gap:4px;
+			padding:7px 10px; color:var(--muted); border-radius:8px;
+			border:1px solid transparent; background:none;
+			transition: all .3s cubic-bezier(0.4,0,0.2,1);
+			font-weight:400; font-size:13px; cursor:pointer;
+			font-family:var(--sans); line-height:1.5;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+		}
+		.dropdownToggle:hover, .dropdownToggle.active{
+			color:var(--text); background:var(--panel);
+			border-color:var(--stroke); box-shadow:var(--shadow-sm);
+		}
+		.dropdownToggle::after{
+			content:'▾'; font-size:12px; transition:transform .3s ease;
+		}
+		.dropdownToggle.active::after{transform:rotate(180deg)}
+		.dropdownMenu{
+			position:absolute; top:100%; left:0; margin-top:6px;
+			background:var(--bg); border:1px solid var(--stroke);
+			border-radius:10px; box-shadow:var(--shadow);
+			min-width:170px; opacity:0; visibility:hidden;
+			transform:translateY(-6px);
+			transition: all .25s cubic-bezier(0.4,0,0.2,1);
+			z-index:100; overflow:hidden;
+		}
+		[data-theme="dark"] .dropdownMenu{background:var(--bg-soft)}
+		.dropdownMenu.show{opacity:1; visibility:visible; transform:translateY(0)}
+		.dropdownMenu a{
+			display:block; padding:10px 16px; color:var(--muted);
+			transition:all .2s ease; border:none; border-radius:0;
+			border-left:3px solid transparent; font-size:13px;
+		}
+		.dropdownMenu a:hover{
+			background:var(--panel); color:var(--text);
+			border-left-color:var(--brand); box-shadow:none;
+		}
+
 		.cta{
-		display:inline-flex; align-items:center; justify-content:center; gap:10px;
-		padding:12px 24px;
-		border-radius:14px;
+		display:inline-flex; align-items:center; justify-content:center; gap:6px;
+		padding:7px 14px;
+		border-radius:8px;
+		font-size:13px;
 		background: linear-gradient(135deg, var(--brand), var(--accent));
 		color: #ffffff !important;
 		font-weight:700;
@@ -667,16 +715,16 @@ $siteLogoPath = get_site_logo_path();
 			.hero{padding: 56px 0 24px}
 		}
 		@media (max-width: 760px){
-			.themeToggle{width:44px; height:44px}
+			.themeToggle{width:36px; height:36px}
 			.menuBtn{display:inline-flex}
 			.navlinks{
 				display:none;
 				position:absolute;
 				left: var(--pad);
 				right: var(--pad);
-				top: 76px;
-				padding: 16px;
-				border-radius: 20px;
+				top: 68px;
+				padding: 12px;
+				border-radius: 14px;
 				border: 1px solid var(--stroke);
 				background: var(--panel);
 				backdrop-filter: blur(20px) saturate(180%);
@@ -684,9 +732,15 @@ $siteLogoPath = get_site_logo_path();
 				align-items:stretch;
 				box-shadow: 0 16px 48px rgba(16,185,129,.2);
 			}
-			.navlinks a{padding: 14px 16px}
+			.navlinks a{padding: 10px 14px; font-size:14px}
 			.navlinks.open{display:flex; animation: fadeInUp 0.3s ease}
-			.cta{justify-content:center}
+			/* Mobile dropdown */
+			.navDropdown{display:block}
+			.dropdownToggle{width:100%; justify-content:space-between; font-size:14px; padding:10px 14px}
+			.dropdownMenu{position:static; opacity:1; visibility:visible; transform:none; background:transparent; border:none; box-shadow:none; margin-top:0; min-width:auto; max-height:0; overflow:hidden; transition:max-height .3s ease}
+			.dropdownMenu.show{max-height:400px}
+			.dropdownMenu a{padding:8px 14px 8px 28px}
+			.cta{justify-content:center; font-size:14px; padding:10px 14px}
 			.card{grid-column: span 12}
 			.wide{grid-column: span 12}
 			.logos{grid-template-columns: repeat(2, minmax(0, 1fr))}
@@ -730,34 +784,39 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="themeToggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
-					<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="5"/>
-						<line x1="12" y1="1" x2="12" y2="3"/>
-						<line x1="12" y1="21" x2="12" y2="23"/>
-						<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-						<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-						<line x1="1" y1="12" x2="3" y2="12"/>
-						<line x1="21" y1="12" x2="23" y2="12"/>
-						<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-						<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-					</svg>
-					<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-					</svg>
-				</button>
-
 				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
 					<span aria-hidden="true">☰</span>
 					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
-					<a href="work.php">Work</a>
 					<a href="products.php">Products</a>
 					<a href="clients.php">Clients</a>
+					<div class="navDropdown">
+						<button class="dropdownToggle" data-dropdown="company">Company</button>
+						<div class="dropdownMenu" id="company">
+							<a href="work.php">Our Work</a>
+							<a href="ceo.php">Meet Our CEO</a>
+						</div>
+					</div>
 					<a href="partners.php">Partners</a>
 					<a href="contact.php">Contact</a>
+					<button class="themeToggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+						<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="5"/>
+							<line x1="12" y1="1" x2="12" y2="3"/>
+							<line x1="12" y1="21" x2="12" y2="23"/>
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+							<line x1="1" y1="12" x2="3" y2="12"/>
+							<line x1="21" y1="12" x2="23" y2="12"/>
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+						</svg>
+						<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+						</svg>
+					</button>
 					<a class="cta" href="index.php#contact">
 						<span>Request a Quote</span>
 						<span aria-hidden="true">→</span>
@@ -827,13 +886,6 @@ $siteLogoPath = get_site_logo_path();
 								<div class="chip">Fire Protection</div>
 								<div class="chip">Facilities Maintenance</div>
 							</div>
-							<div class="note" role="note">
-							<span aria-hidden="true">Tip</span>
-							<span>
-								Replace the placeholders (services, products, clients, partners) with your real names and catalogs.
-								I can wire in your logo, WhatsApp link, and product PDFs if you share them.
-							</span>
-						</div>
 					</aside>
 				</div>
 			</section>
@@ -1144,6 +1196,18 @@ $siteLogoPath = get_site_logo_path();
 					<div class="contactCard">
 						<h3>Reach Ace‑mtech</h3>
 
+						<div style="border-radius:12px; overflow:hidden; margin-bottom:16px; width:100%; height:250px;">
+							<iframe
+								src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7362.03508234003!2d121.06006287717733!3d14.539064585939927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c89678cced09%3A0xc5eaa6d95c2bb27d!2sAce%20Mtech%20Group%20Incorporated!5e1!3m2!1sen!2sph!4v1773379299382!5m2!1sen!2sph"
+								width="100%"
+								height="100%"
+								style="border:0; display:block;"
+								allowfullscreen=""
+								loading="lazy"
+								referrerpolicy="no-referrer-when-downgrade"
+							></iframe>
+						</div>
+
 						<div class="contactRow">
 							<div class="icon" aria-hidden="true" style="width:36px;height:36px;border-radius:12px">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1239,6 +1303,7 @@ $siteLogoPath = get_site_logo_path();
 					<a href="products.php">Products</a>
 					<a href="clients.php">Clients</a>
 					<a href="partners.php">Partners</a>
+					<a href="ceo.php">Meet Our CEO</a>
 					<a href="contact.php">Contact</a>
 				</div>
 			</div>
@@ -1359,6 +1424,41 @@ $siteLogoPath = get_site_logo_path();
 
 			document.addEventListener('keydown', function (e) {
 				if (e.key === 'Escape') setOpen(false);
+			});
+
+			// Dropdown menu functionality
+			var dropdownToggles = document.querySelectorAll('.dropdownToggle');
+			dropdownToggles.forEach(function(toggle) {
+				toggle.addEventListener('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					var dropdownId = this.getAttribute('data-dropdown');
+					var dropdownMenu = document.getElementById(dropdownId);
+					var isOpen = dropdownMenu.classList.contains('show');
+
+					document.querySelectorAll('.dropdownMenu').forEach(function(menu) {
+						menu.classList.remove('show');
+					});
+					document.querySelectorAll('.dropdownToggle').forEach(function(btn) {
+						btn.classList.remove('active');
+					});
+
+					if (!isOpen) {
+						dropdownMenu.classList.add('show');
+						toggle.classList.add('active');
+					}
+				});
+			});
+
+			document.addEventListener('click', function(e) {
+				if (!e.target.closest('.navDropdown')) {
+					document.querySelectorAll('.dropdownMenu').forEach(function(menu) {
+						menu.classList.remove('show');
+					});
+					document.querySelectorAll('.dropdownToggle').forEach(function(btn) {
+						btn.classList.remove('active');
+					});
+				}
 			});
 
 			var form = document.getElementById('contactForm');

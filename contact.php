@@ -32,7 +32,7 @@ $siteLogoPath = get_site_logo_path();
 	</script>
 	<title>Ace‑mtech Group | Contact</title>
 	<meta name="description" content="Contact Ace‑mtech Group for construction, engineering, and HVAC services." />
-	<link rel="stylesheet" href="styles.css" />
+	<link rel="stylesheet" href="styles.css?v=2" />
 </head>
 
 <body>
@@ -49,34 +49,39 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="themeToggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
-					<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-						<circle cx="12" cy="12" r="5"/>
-						<line x1="12" y1="1" x2="12" y2="3"/>
-						<line x1="12" y1="21" x2="12" y2="23"/>
-						<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-						<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-						<line x1="1" y1="12" x2="3" y2="12"/>
-						<line x1="21" y1="12" x2="23" y2="12"/>
-						<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-						<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-					</svg>
-					<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
-						<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-					</svg>
-				</button>
-
 				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
 					<span aria-hidden="true">☰</span>
 					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
-					<a href="work.php">Work</a>
 					<a href="products.php">Products</a>
 					<a href="clients.php">Clients</a>
+					<div class="navDropdown">
+						<button class="dropdownToggle" data-dropdown="company">Company</button>
+						<div class="dropdownMenu" id="company">
+							<a href="work.php">Our Work</a>
+							<a href="ceo.php">Meet Our CEO</a>
+						</div>
+					</div>
 					<a href="partners.php">Partners</a>
 					<a href="contact.php">Contact</a>
+					<button class="themeToggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+						<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+							<circle cx="12" cy="12" r="5"/>
+							<line x1="12" y1="1" x2="12" y2="3"/>
+							<line x1="12" y1="21" x2="12" y2="23"/>
+							<line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+							<line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+							<line x1="1" y1="12" x2="3" y2="12"/>
+							<line x1="21" y1="12" x2="23" y2="12"/>
+							<line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+							<line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+						</svg>
+						<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none">
+							<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+						</svg>
+					</button>
 					<a class="cta" href="index.php#contact">
 						<span>Request a Quote</span>
 						<span aria-hidden="true">→</span>
@@ -101,6 +106,18 @@ $siteLogoPath = get_site_logo_path();
 				<div class="contactGrid">
 					<div class="contactCard">
 						<h3>Reach Ace‑mtech</h3>
+
+						<div style="border-radius:12px; overflow:hidden; margin-bottom:16px; width:100%; height:250px;">
+							<iframe
+								src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7362.03508234003!2d121.06006287717733!3d14.539064585939927!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397c89678cced09%3A0xc5eaa6d95c2bb27d!2sAce%20Mtech%20Group%20Incorporated!5e1!3m2!1sen!2sph!4v1773379299382!5m2!1sen!2sph"
+								width="100%"
+								height="100%"
+								style="border:0; display:block;"
+								allowfullscreen=""
+								loading="lazy"
+								referrerpolicy="no-referrer-when-downgrade"
+							></iframe>
+						</div>
 
 						<div class="contactRow">
 							<div class="icon" aria-hidden="true" style="width:36px;height:36px;border-radius:12px">
@@ -202,6 +219,7 @@ $siteLogoPath = get_site_logo_path();
 					<a href="products.php">Products</a>
 					<a href="clients.php">Clients</a>
 					<a href="partners.php">Partners</a>
+					<a href="ceo.php">Meet Our CEO</a>
 					<a href="contact.php">Contact</a>
 				</div>
 			</div>

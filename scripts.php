@@ -110,6 +110,43 @@
 				});
 			}
 
+			// Dropdown menu functionality
+			var dropdownToggles = document.querySelectorAll('.dropdownToggle');
+			dropdownToggles.forEach(function(toggle) {
+				toggle.addEventListener('click', function(e) {
+					e.preventDefault();
+					var dropdownId = this.getAttribute('data-dropdown');
+					var dropdownMenu = document.getElementById(dropdownId);
+					var isOpen = dropdownMenu.classList.contains('show');
+					
+					// Close all other dropdowns
+					document.querySelectorAll('.dropdownMenu').forEach(function(menu) {
+						menu.classList.remove('show');
+					});
+					document.querySelectorAll('.dropdownToggle').forEach(function(btn) {
+						btn.classList.remove('active');
+					});
+					
+					// Toggle current dropdown
+					if (!isOpen) {
+						dropdownMenu.classList.add('show');
+						toggle.classList.add('active');
+					}
+				});
+			});
+			
+			// Close dropdowns when clicking outside
+			document.addEventListener('click', function(e) {
+				if (!e.target.closest('.navDropdown')) {
+					document.querySelectorAll('.dropdownMenu').forEach(function(menu) {
+						menu.classList.remove('show');
+					});
+					document.querySelectorAll('.dropdownToggle').forEach(function(btn) {
+						btn.classList.remove('active');
+					});
+				}
+			});
+
 			document.addEventListener('keydown', function (e) {
 				if (e.key === 'Escape') setOpen(false);
 			});
@@ -132,8 +169,19 @@
 						}
 					})
 						.then(function (res) {
-							return res.json().catch(function () {
-								return { ok: false, message: 'Unexpected server response.' };
+							return res.text().then(function (raw) {
+								try {
+									return JSON.parse(raw);
+								} catch (err) {
+									var preview = (raw || '').trim();
+									if (preview.length > 140) {
+										preview = preview.slice(0, 140) + '...';
+									}
+									return {
+										ok: false,
+										message: preview ? ('Unexpected server response: ' + preview) : 'Unexpected server response.'
+									};
+								}
 							});
 						})
 						.then(function (data) {

@@ -7,6 +7,9 @@ use PHPMailer\PHPMailer\Exception;
 
 header('Content-Type: application/json; charset=utf-8');
 
+// Prevent stray warnings/notices from corrupting JSON output.
+ini_set('display_errors', '0');
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 	http_response_code(405);
 	echo json_encode(['ok' => false, 'message' => 'Method not allowed.']);
@@ -15,7 +18,14 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 session_start();
 
-require __DIR__ . '/vendor/autoload.php';
+$autoloadPath = __DIR__ . '/vendor/autoload.php';
+if (!is_file($autoloadPath)) {
+	http_response_code(500);
+	echo json_encode(['ok' => false, 'message' => 'Server dependency missing. Run composer install.']);
+	exit;
+}
+
+require $autoloadPath;
 
 $honeypot = trim((string)($_POST['website'] ?? ''));
 if ($honeypot !== '') {
@@ -71,13 +81,36 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
 $smtpPort = getenv('SMTP_PORT') ?: '587';
 $smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
-$smtpPass = getenv('SMTP_PASS') ?: 'tftt lpmq pzzk mobh';
-$smtpFrom = getenv('SMTP_FROM') ?: 'ACE-mtech Website <acemtech781@gmail.com>';
+$smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
+$smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
+$smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
 $smtpTo = getenv('SMTP_TO') ?: $smtpUser;
+
+// Gmail app passwords are often shown with spaces in groups of 4.
+$smtpPass = str_replace(' ', '', trim($smtpPass));
 
 if ($smtpHost === '' || $smtpUser === '' || $smtpPass === '' || $smtpFrom === '' || $smtpTo === '') {
 	http_response_code(500);
 	echo json_encode(['ok' => false, 'message' => 'Server email is not configured.']);
+	exit;
+}
+
+if (!filter_var($smtpTo, FILTER_VALIDATE_EMAIL)) {
+	http_response_code(500);
+	echo json_encode(['ok' => false, 'message' => 'Server recipient email is invalid.']);
+	exit;
+}
+
+// Allow SMTP_FROM to be either "email@domain" or "Name <email@domain>".
+$fromEmail = $smtpFrom;
+if (preg_match('/^\s*([^<]+)\s*<\s*([^>]+)\s*>\s*$/', $smtpFrom, $matches)) {
+	$smtpFromName = trim($matches[1]);
+	$fromEmail = trim($matches[2]);
+}
+
+if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
+	http_response_code(500);
+	echo json_encode(['ok' => false, 'message' => 'Server sender email is invalid.']);
 	exit;
 }
 
@@ -98,7 +131,7 @@ try {
 	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 	$mail->Port = (int)$smtpPort;
 
-	$mail->setFrom($smtpFrom, 'Ace-mtech Website');
+	$mail->setFrom($fromEmail, $smtpFromName);
 	$mail->addAddress($smtpTo);
 	$mail->addReplyTo($email, $name);
 
@@ -108,6 +141,12 @@ try {
 	$mail->send();
 	echo json_encode(['ok' => true]);
 } catch (Exception $e) {
+	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+	error_log('Ace-mtech mail error: ' . $rawError);
 	http_response_code(500);
+	if (stripos($rawError, 'authenticate') !== false) {
+		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (use a valid Gmail app password).']);
+		exit;
+	}
 	echo json_encode(['ok' => false, 'message' => 'Failed to send. Please try again later.']);
 }
