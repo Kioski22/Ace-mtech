@@ -51,7 +51,6 @@ $siteLogoPath = get_site_logo_path();
 
 				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">

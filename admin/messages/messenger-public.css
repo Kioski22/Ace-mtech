@@ -155,6 +155,7 @@
 
 .message-row {
   display: flex;
+  width: 100%;
 }
 
 .message-row--user {
@@ -168,15 +169,28 @@
 .message-content {
   max-width: 82%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: fit-content;
+}
+
+.message-row--user .message-content {
+  align-items: flex-end;
 }
 
 .message-bubble {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
   border-radius: 12px;
   padding: 8px 10px;
   font-size: 13px;
   line-height: 1.45;
   overflow-wrap: anywhere;
   word-break: break-word;
+  
 }
 
 .message-bubble.user {
