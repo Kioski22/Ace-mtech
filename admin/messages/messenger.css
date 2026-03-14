@@ -300,11 +300,6 @@ body {
   color: #666;
   text-transform: uppercase;
 }
-.msg-divider {
-  border: 0;
-  border-top: 2px solid var(--line);
-  margin: 20px 0 24px;
-}
 .attachment-box {
   width: 240px;
   height: 240px;

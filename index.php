@@ -181,7 +181,7 @@ $siteLogoPath = get_site_logo_path();
 			cursor:pointer;
 			transition: all 0.3s ease;
 			flex-shrink: 0;
-			font-size:13px;
+			font-size:16px;
 		}
 		.menuBtn:hover{
 			background: var(--bg-soft);
@@ -714,6 +714,12 @@ $siteLogoPath = get_site_logo_path();
 			.logos{grid-template-columns: repeat(3, minmax(0, 1fr))}
 			.hero{padding: 56px 0 24px}
 		}
+		@media (max-width: 640px){
+			.stats{grid-template-columns: 1fr; gap: 12px}
+			.stat{padding: 16px}
+			.stat b{font-size: 16px}
+			.stat span{font-size: 12px}
+		}
 		@media (max-width: 760px){
 			.themeToggle{width:36px; height:36px}
 			.menuBtn{display:inline-flex}
@@ -786,7 +792,6 @@ $siteLogoPath = get_site_logo_path();
 
 				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">

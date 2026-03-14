@@ -262,9 +262,6 @@ function renderMessages(ticketId, ticket, messagesObj) {
       </article>
     `;
 
-    if (index === 0 && msgs.length > 1) {
-      html += `<hr class="msg-divider" />`;
-    }
   });
 
   messagesViewEl.innerHTML = html;
