@@ -1,0 +1,30 @@
+name: Deploy PHP to GoDaddy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ftp-deploy:
+    name: Upload to GoDaddy via FTP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Deploy to GoDaddy
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /
+          # avoid hidden-dotfile issues on some hosts
+          state-name: ftp-deploy-sync-state.json
+          dangerous-clean-slate: false
+          exclude: |
+            **/vendor/**
