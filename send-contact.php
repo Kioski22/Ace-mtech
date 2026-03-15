@@ -78,15 +78,18 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
-$smtpHost = trim((string)(getenv('SMTP_HOST') ?: 'localhost'));
-$smtpPort = (int)(getenv('SMTP_PORT') ?: '25');
-$smtpUser = trim((string)(getenv('SMTP_USER') ?: ''));
-$smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
-$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: ''));
+$smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
+$smtpPort = getenv('SMTP_PORT') ?: '587';
+$smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
+$smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
+$smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
 $smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
-$smtpTo = trim((string)(getenv('SMTP_TO') ?: ''));
+$smtpTo = getenv('SMTP_TO') ?: $smtpUser;
 
-if ($smtpHost === '' || $smtpFrom === '' || $smtpTo === '') {
+// Gmail app passwords are often shown with spaces in groups of 4.
+$smtpPass = str_replace(' ', '', trim($smtpPass));
+
+if ($smtpHost === '' || $smtpUser === '' || $smtpPass === '' || $smtpFrom === '' || $smtpTo === '') {
 	http_response_code(500);
 	echo json_encode(['ok' => false, 'message' => 'Server email is not configured.']);
 	exit;
@@ -111,22 +114,6 @@ if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
-$thirdPartyMailboxDomains = [
-	'gmail.com',
-	'yahoo.com',
-	'outlook.com',
-	'hotmail.com',
-	'icloud.com',
-	'aol.com',
-];
-
-$fromDomain = strtolower((string)substr(strrchr($fromEmail, '@') ?: '', 1));
-if (in_array($fromDomain, $thirdPartyMailboxDomains, true)) {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'Server sender email must be a domain mailbox, not a third-party mailbox provider.']);
-	exit;
-}
-
 $subject = 'Project inquiry' . ($company !== '' ? ' - ' . $company : '');
 $body =
 	"Name: {$name}\n" .
@@ -138,12 +125,11 @@ try {
 	$mail = new PHPMailer(true);
 	$mail->isSMTP();
 	$mail->Host = $smtpHost;
-	$mail->SMTPAuth = false;
-	$mail->SMTPSecure = '';
-	$mail->SMTPAutoTLS = false;
-	$mail->Port = $smtpPort;
-	$mail->Timeout = 8;
-	$mail->Timelimit = 8;
+	$mail->SMTPAuth = true;
+	$mail->Username = $smtpUser;
+	$mail->Password = $smtpPass;
+	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+	$mail->Port = (int)$smtpPort;
 
 	$mail->setFrom($fromEmail, $smtpFromName);
 	$mail->addAddress($smtpTo);
@@ -153,13 +139,14 @@ try {
 	$mail->Body = $body;
 
 	$mail->send();
-	echo json_encode([
-		'ok' => true,
-		'message' => 'Request submitted successfully. Email sent via local mail relay.'
-	]);
+	echo json_encode(['ok' => true]);
 } catch (Exception $e) {
 	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
 	error_log('Ace-mtech mail error: ' . $rawError);
 	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => $rawError]);
+	if (stripos($rawError, 'authenticate') !== false) {
+		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (use a valid Gmail app password).']);
+		exit;
+	}
+	echo json_encode(['ok' => false, 'message' => 'Failed to send. Please try again later.']);
 }
