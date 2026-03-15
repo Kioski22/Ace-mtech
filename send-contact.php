@@ -106,8 +106,28 @@ $savedLocally = persist_contact_request([
 	'user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
 ]);
 
+if (!$savedLocally) {
+	http_response_code(500);
+	echo json_encode([
+		'ok' => false,
+		'message' => 'Unable to record your request right now. Please try again shortly.'
+	]);
+	exit;
+}
+
+$contactEmailMode = strtolower(trim((string)(getenv('CONTACT_EMAIL_MODE') ?: 'off')));
+if ($contactEmailMode !== 'sync') {
+	echo json_encode([
+		'ok' => true,
+		'saved_local' => true,
+		'request_id' => $requestId,
+		'message' => 'Request received successfully. Our team will review it and contact you shortly.'
+	]);
+	exit;
+}
+
 $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpPort = getenv('SMTP_PORT') ?: '25';
+$smtpPort = getenv('SMTP_PORT') ?: '587';
 $smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
 $smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
 $smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
@@ -158,6 +178,8 @@ try {
 	$mail->Password = $smtpPass;
 	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
 	$mail->Port = (int)$smtpPort;
+	$mail->Timeout = 8;
+	$mail->Timelimit = 8;
 
 	$mail->setFrom($fromEmail, $smtpFromName);
 	$mail->addAddress($smtpTo);
@@ -176,20 +198,10 @@ try {
 	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
 	error_log('Ace-mtech mail error: ' . $rawError);
 
-	if ($savedLocally) {
-		echo json_encode([
-			'ok' => true,
-			'saved_local' => true,
-			'request_id' => $requestId,
-			'message' => 'Request received. Email notification is temporarily delayed, but your request has been recorded.'
-		]);
-		exit;
-	}
-
-	http_response_code(500);
-	if (stripos($rawError, 'authenticate') !== false) {
-		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (use a valid Gmail app password).']);
-		exit;
-	}
-	echo json_encode(['ok' => false, 'message' => 'Failed to send. Please try again later.']);
+	echo json_encode([
+		'ok' => true,
+		'saved_local' => true,
+		'request_id' => $requestId,
+		'message' => 'Request received. Email notification is temporarily delayed, but your request has been recorded.'
+	]);
 }
