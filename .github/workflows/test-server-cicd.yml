@@ -12,16 +12,27 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 2
 
+      - name: Validate FTP secrets
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          test -n "$FTP_SERVER" || (echo "FTP_SERVER is empty or missing" && exit 1)
+          test -n "$FTP_USERNAME" || (echo "FTP_USERNAME is empty or missing" && exit 1)
+          test -n "$FTP_PASSWORD" || (echo "FTP_PASSWORD is empty or missing" && exit 1)
+
       - name: Deploy to GoDaddy
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
           server-dir: /
           # avoid hidden-dotfile issues on some hosts
           state-name: ftp-deploy-sync-state.json
