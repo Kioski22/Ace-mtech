@@ -119,9 +119,11 @@ $contactEmailMode = strtolower(trim((string)(getenv('CONTACT_EMAIL_MODE') ?: 'sy
 if ($contactEmailMode !== 'sync') {
 	echo json_encode([
 		'ok' => true,
+		'email_sent' => false,
 		'saved_local' => true,
+		'reason' => 'email_disabled',
 		'request_id' => $requestId,
-		'message' => 'Request recorded locally. Email notification is currently disabled, so no email was sent.'
+		'message' => 'Request saved, but email was not sent because notifications are disabled.'
 	]);
 	exit;
 }
@@ -191,8 +193,10 @@ try {
 	$mail->send();
 	echo json_encode([
 		'ok' => true,
+		'email_sent' => true,
+		'saved_local' => true,
 		'request_id' => $requestId,
-		'message' => 'Request submitted successfully. We will contact you shortly.'
+		'message' => 'Request saved and email sent successfully.'
 	]);
 } catch (Exception $e) {
 	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
@@ -200,8 +204,10 @@ try {
 
 	echo json_encode([
 		'ok' => true,
+		'email_sent' => false,
 		'saved_local' => true,
+		'reason' => 'smtp_failed',
 		'request_id' => $requestId,
-		'message' => 'Request received. Email notification is temporarily delayed, but your request has been recorded.'
+		'message' => 'Request saved, but email was not sent due to SMTP failure.'
 	]);
 }
