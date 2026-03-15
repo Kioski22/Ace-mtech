@@ -34,8 +34,8 @@ if ($honeypot !== '') {
 }
 
 $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-$limitWindowSeconds = 600;
-$limitMax = 3;
+$limitWindowSeconds = max(60, (int)(getenv('CONTACT_RATE_LIMIT_WINDOW') ?: '300'));
+$limitMax = max(1, (int)(getenv('CONTACT_RATE_LIMIT_MAX') ?: '10'));
 $rateFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'acemtech_rate_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $ip) . '.json';
 
 $now = time();
@@ -53,8 +53,16 @@ if (is_file($rateFile)) {
 }
 
 if (count($recent) >= $limitMax) {
+	$oldestInWindow = (int)($recent[0] ?? $now);
+	$retryAfter = max(1, $limitWindowSeconds - ($now - $oldestInWindow));
+	header('Retry-After: ' . (string)$retryAfter);
 	http_response_code(429);
-	echo json_encode(['ok' => false, 'message' => 'Too many requests. Please try again shortly.']);
+	echo json_encode([
+		'ok' => false,
+		'code' => 'rate_limited',
+		'retry_after_seconds' => $retryAfter,
+		'message' => 'Too many requests. Please wait before trying again.'
+	]);
 	exit;
 }
 
@@ -129,7 +137,7 @@ if ($contactEmailMode !== 'sync') {
 }
 
 $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpPort = getenv('SMTP_PORT') ?: '587';
+$smtpPort = getenv('SMTP_PORT') ?: '25';
 $smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
 $smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
 $smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
