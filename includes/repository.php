@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 require_once __DIR__ . "/db.php";
 
-function table_exists(PDO $pdo, string $tableName): bool
+function table_exists($pdo, string $tableName): bool
 {
 	$stmt = $pdo->query("SHOW TABLES LIKE " . $pdo->quote($tableName));
 	return (bool)$stmt->fetchColumn();
 }
 
-function column_exists(PDO $pdo, string $tableName, string $columnName): bool
+function column_exists($pdo, string $tableName, string $columnName): bool
 {
 	$stmt = $pdo->prepare(
 		"SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table_name AND COLUMN_NAME = :column_name"
@@ -22,7 +22,7 @@ function column_exists(PDO $pdo, string $tableName, string $columnName): bool
 	return (int)($stmt->fetchColumn() ?: 0) > 0;
 }
 
-function ensure_products_service_columns(PDO $pdo): void
+function ensure_products_service_columns($pdo): void
 {
 	if (!table_exists($pdo, "products")) {
 		return;
@@ -37,7 +37,7 @@ function ensure_products_service_columns(PDO $pdo): void
 	}
 }
 
-function sync_product_gallery_post_cover_with_pdo(PDO $pdo, int $postId): void
+function sync_product_gallery_post_cover_with_pdo($pdo, int $postId): void
 {
 	$stmt = $pdo->prepare(
 		"SELECT image_path FROM product_gallery_images WHERE gallery_post_id = :post_id ORDER BY display_order ASC, id ASC LIMIT 1"
@@ -52,7 +52,7 @@ function sync_product_gallery_post_cover_with_pdo(PDO $pdo, int $postId): void
 	]);
 }
 
-function migrate_legacy_product_gallery(PDO $pdo): void
+function migrate_legacy_product_gallery($pdo): void
 {
 	if (!table_exists($pdo, "product_gallery")) {
 		return;
@@ -135,7 +135,7 @@ function social_platform_catalog(): array
 	];
 }
 
-function seed_social_links_if_missing(PDO $pdo): void
+function seed_social_links_if_missing($pdo): void
 {
 	$catalog = social_platform_catalog();
 	$findStmt = $pdo->prepare("SELECT COUNT(*) FROM social_links WHERE platform_key = :platform_key");
