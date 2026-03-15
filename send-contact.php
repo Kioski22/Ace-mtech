@@ -242,8 +242,9 @@ $smtpPort = (int)(getenv('APP_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 465);
 $smtpTimeout = max(3, (int)(getenv('APP_SMTP_TIMEOUT') ?: '8'));
 $smtpAuth = env_bool('APP_SMTP_AUTH', true);
 $smtpSecure = smtp_encryption_mode($smtpPort);
-$smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'localhost-first')));
-$useLocalhostFirst = in_array($smtpMode, ['localhost-first', 'fallback-first', 'local-first'], true);
+$smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'local-only')));
+$useLocalhostFirst = in_array($smtpMode, ['localhost-first', 'fallback-first', 'local-first', 'local-only', 'localhost-only'], true);
+$useLocalhostOnly = in_array($smtpMode, ['local-only', 'localhost-only'], true);
 
 $smtpFrom = trim((string)(getenv('SMTP_FROM') ?: 'your-full-email@yourdomain.com'));
 $smtpFromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website'));
@@ -271,7 +272,7 @@ if (in_array($smtpUser, ['your-full-email@yourdomain.com'], true)
 	exit;
 }
 
-if ($smtpAuth && ($smtpUser === '' || $smtpPass === '')) {
+if (!$useLocalhostOnly && $smtpAuth && ($smtpUser === '' || $smtpPass === '')) {
 	http_response_code(500);
 	echo json_encode(['ok' => false, 'message' => 'SMTP authentication is enabled but credentials are missing.']);
 	exit;
@@ -310,7 +311,7 @@ try {
 		$sent = send_via_fallback($fromEmail, $smtpFromName, $email, $name, $smtpTo, $subject, $body);
 	}
 
-	if (!$sent) {
+	if (!$sent && !$useLocalhostOnly) {
 		$mail = new PHPMailer(true);
 		$mail->isSMTP();
 		$mail->Host = $smtpHost;
@@ -348,9 +349,9 @@ try {
 		'ok' => true,
 		'email_sent' => true,
 		'saved_local' => true,
-		'reason' => 'smtp_sent',
+		'reason' => $useLocalhostOnly ? 'local_relay_sent' : 'smtp_sent',
 		'request_id' => $requestId,
-		'message' => 'Request saved and email sent successfully.'
+		'message' => $useLocalhostOnly ? 'Request saved and email sent via local server relay.' : 'Request saved and email sent successfully.'
 	]);
 } catch (Exception $e) {
 	$rawError = isset($mail) && $mail instanceof PHPMailer && $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
