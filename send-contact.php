@@ -242,12 +242,12 @@ $smtpPort = (int)(getenv('APP_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 465);
 $smtpTimeout = max(3, (int)(getenv('APP_SMTP_TIMEOUT') ?: '8'));
 $smtpAuth = env_bool('APP_SMTP_AUTH', true);
 $smtpSecure = smtp_encryption_mode($smtpPort);
-$smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'primary-first')));
+$smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'localhost-first')));
 $useLocalhostFirst = in_array($smtpMode, ['localhost-first', 'fallback-first', 'local-first'], true);
 
-$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: 'acemtech781@gmail.com'));
+$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: 'your-full-email@yourdomain.com'));
 $smtpFromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website'));
-$smtpTo = trim((string)(getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com'));
+$smtpTo = trim((string)(getenv('SMTP_TO') ?: 'where-you-want-to-receive@yourdomain.com'));
 
 // Gmail app passwords are often shown with spaces in groups of 4.
 $smtpPass = str_replace(' ', '', trim($smtpPass));
@@ -258,9 +258,9 @@ if ($smtpHost === '' || $smtpFrom === '' || $smtpTo === '') {
 	exit;
 }
 
-if (in_array($smtpUser, ['acemtech781@gmail.com'], true)
-	|| in_array($smtpFrom, ['acemtech781@gmail.com'], true)
-	|| in_array($smtpTo, ['acemtech781@gmail.com'], true)
+if (in_array($smtpUser, ['your-full-email@yourdomain.com'], true)
+	|| in_array($smtpFrom, ['your-full-email@yourdomain.com'], true)
+	|| in_array($smtpTo, ['where-you-want-to-receive@yourdomain.com'], true)
 	|| $smtpPass === 'your-mailbox-password') {
 	http_response_code(500);
 	echo json_encode([
