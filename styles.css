@@ -142,11 +142,7 @@ header{
 	border-radius:10px;
 	cursor:pointer;
 	transition: all 0.3s ease;
-<<<<<<< HEAD
 	font-size: 18px;
-=======
-	font-size: 16px;
->>>>>>> 069144a7e55ed76e0d439734b1c81146a67b088c
 	flex-shrink: 0;
 }
 .menuBtn:hover{

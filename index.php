@@ -183,11 +183,7 @@ $siteLogoPath = get_site_logo_path();
 			cursor:pointer;
 			transition: all 0.3s ease;
 			flex-shrink: 0;
-<<<<<<< HEAD
 			font-size:18px;
-=======
-			font-size:16px;
->>>>>>> 069144a7e55ed76e0d439734b1c81146a67b088c
 		}
 		.menuBtn:hover{
 			background: var(--bg-soft);
