@@ -8,7 +8,8 @@ $siteLogoPath = get_site_logo_path();
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -50,9 +51,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -99,7 +99,7 @@ $siteLogoPath = get_site_logo_path();
 					<div>
 						<h2>Clients</h2>
 						<p class="sectionDesc">
-							Below are placeholders—replace with your real client names or logo images.
+							Below are major clients we've worked with across various industries.
 						</p>
 					</div>
 				</div>

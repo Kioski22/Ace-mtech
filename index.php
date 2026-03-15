@@ -1,9 +1,9 @@
 <?php
-require_once __DIR__ . "/includes/data.php";
 require_once __DIR__ . "/includes/repository.php";
 
-$clients = load_items("clients");
-$partners = load_items("partners");
+$clients = get_clients();
+$partners = get_partners();
+$services = get_service_products();
 $products = get_products();
 $newsPosts = get_news_posts();
 $siteLogoPath = get_site_logo_path();
@@ -12,7 +12,8 @@ $siteLogoPath = get_site_logo_path();
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -132,7 +133,7 @@ $siteLogoPath = get_site_logo_path();
 		}
 		.brand{
 			display:flex; gap:8px; align-items:center;
-			flex-shrink: 0;
+			min-width: 0;
 		}
 		.mark{
 			width: 48px; height:48px;
@@ -158,6 +159,7 @@ $siteLogoPath = get_site_logo_path();
 			transition: all 0.3s ease;
 			box-shadow: var(--shadow-sm);
 			flex-shrink: 0;
+			margin-right: 10px;
 		}
 		.themeToggle:hover{
 			background: var(--bg-soft);
@@ -172,16 +174,16 @@ $siteLogoPath = get_site_logo_path();
 
 		.menuBtn{
 			display:none;
-			align-items:center; gap:6px;
+			align-items:center; justify-content:center;
 			border:1px solid var(--stroke);
 			background: var(--panel);
 			color: var(--text);
-			padding:8px 12px;
+			width:40px; height:40px;
 			border-radius:10px;
 			cursor:pointer;
 			transition: all 0.3s ease;
 			flex-shrink: 0;
-			font-size:13px;
+			font-size:18px;
 		}
 		.menuBtn:hover{
 			background: var(--bg-soft);
@@ -715,8 +717,17 @@ $siteLogoPath = get_site_logo_path();
 			.hero{padding: 56px 0 24px}
 		}
 		@media (max-width: 760px){
-			.themeToggle{width:36px; height:36px}
-			.menuBtn{display:inline-flex}
+			.nav{overflow:hidden}
+			.brand{flex:1 1 0; min-width:0; overflow:hidden}
+			.brand span{display:block; min-width:0; overflow:hidden}
+			.brand .title{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+			.brand .tag{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block}
+			.mark{width:36px; height:36px; flex-shrink:0}
+			.themeToggle{width:36px; height:36px; align-self:center; margin-right:0}
+			.menuBtn{display:inline-flex; flex-shrink:0}
+			.stats{grid-template-columns: 1fr}
+			.stat b{font-size:15px}
+			.stat span{font-size:12px}
 			.navlinks{
 				display:none;
 				position:absolute;
@@ -784,9 +795,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -901,68 +911,86 @@ $siteLogoPath = get_site_logo_path();
 				</div>
 
 				<div class="grid">
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9 22 9 12 15 12 15 22" />
-              </svg>
-            </div>
-            <h3>Architectural & Civil Works</h3>
-            <p>Construction, renovation, residential, commercial building, office fit-out, industrial building, power house, and substation projects.</p>
-          </article>
-
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-              </svg>
-            </div>
-            <h3>Electrical Works</h3>
-            <p>Electrical construction, building automation (fire alarm, CCTV, CATV), switchgear maintenance, power generator installation, and lightning protection.</p>
-          </article>
-
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <path d="M12 18v-6" />
-                <path d="M9 15l3 3 3-3" />
-              </svg>
-            </div>
-            <h3>Mechanical Works</h3>
-            <p>HVAC systems, refrigeration, air conditioning, fire protection, sprinkler systems, process piping, chilled water, refrigerant piping, and ducting works.</p>
-          </article>
-
-					<article class="card wide">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v10" />
-                <path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
-                <polyline points="8 10 12 6 16 10" />
-              </svg>
-            </div>
-            <h3>HVAC & Refrigeration Systems</h3>
-            <p>
-              Complete heating, ventilation, and air conditioning solutions. Refrigeration and air conditioning systems for commercial and industrial applications.
-              Authorized dealer and installer for Daikin, Samsung, LG, and Carrier equipment.
-            </p>
-          </article>
-
-					<article class="card wide">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
-                <polyline points="17 2 12 7 7 2" />
-              </svg>
+					<?php if ($services): ?>
+						<?php foreach ($services as $service): ?>
+							<article class="card">
+								<?php if (!empty($service["image_path"])): ?>
+									<div class="productMedia">
+										<img src="<?php echo htmlspecialchars($service["image_path"]); ?>" alt="<?php echo htmlspecialchars($service["name"]); ?>" loading="lazy" />
+									</div>
+								<?php endif; ?>
+								<h3><?php echo htmlspecialchars($service["name"]); ?></h3>
+								<?php if (!empty($service["description"])): ?>
+									<p><?php echo htmlspecialchars($service["description"]); ?></p>
+								<?php else: ?>
+									<p>Comprehensive construction and engineering support tailored to your project requirements.</p>
+								<?php endif; ?>
+							</article>
+						<?php endforeach; ?>
+					<?php else: ?>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+								<polyline points="9 22 9 12 15 12 15 22" />
+							</svg>
 						</div>
-						<h3>Building Automation & Technical Works</h3>
+						<h3>Architectural & Civil Works</h3>
+						<p>Construction, renovation, residential, commercial building, office fit-out, industrial building, power house, and substation projects.</p>
+					</article>
+
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+							</svg>
+						</div>
+						<h3>Electrical Works</h3>
+						<p>Electrical construction, building automation (fire alarm, CCTV, CATV), switchgear maintenance, power generator installation, and lightning protection.</p>
+					</article>
+
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+								<polyline points="14 2 14 8 20 8" />
+								<path d="M12 18v-6" />
+								<path d="M9 15l3 3 3-3" />
+							</svg>
+						</div>
+						<h3>Mechanical Works</h3>
+						<p>HVAC systems, refrigeration, air conditioning, fire protection, sprinkler systems, process piping, chilled water, refrigerant piping, and ducting works.</p>
+					</article>
+
+						<article class="card wide">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M12 2v10" />
+								<path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
+								<polyline points="8 10 12 6 16 10" />
+							</svg>
+						</div>
+						<h3>HVAC & Refrigeration Systems</h3>
 						<p>
-							Fire alarm and detection systems, CCTV, CATV/IP/BGM, telephone systems, infrared and thermographic inspection.
-							Complete facilities and maintenance works, preventive and corrective maintenance for all building systems.
+							Complete heating, ventilation, and air conditioning solutions. Refrigeration and air conditioning systems for commercial and industrial applications.
+							Authorized dealer and installer for Daikin, Samsung, LG, and Carrier equipment.
 						</p>
 					</article>
+
+						<article class="card wide">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+								<rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+								<polyline points="17 2 12 7 7 2" />
+							</svg>
+							</div>
+							<h3>Building Automation & Technical Works</h3>
+							<p>
+								Fire alarm and detection systems, CCTV, CATV/IP/BGM, telephone systems, infrared and thermographic inspection.
+								Complete facilities and maintenance works, preventive and corrective maintenance for all building systems.
+							</p>
+						</article>
+					<?php endif; ?>
 				</div>
 			</section>
 
@@ -1112,7 +1140,7 @@ $siteLogoPath = get_site_logo_path();
 					<div>
 						<h2>Clients</h2>
 						<p class="sectionDesc">
-							Below are placeholders—replace with your real client names or logo images.
+							Below are major clients we've worked with across various industries.
 						</p>
 					</div>
 				</div>
@@ -1128,8 +1156,8 @@ $siteLogoPath = get_site_logo_path();
 					<?php else: ?>
 						<?php foreach ($clients as $client): ?>
 							<div class="logo">
-								<?php if (!empty($client["image"])): ?>
-									<img src="<?php echo htmlspecialchars($client["image"]); ?>" alt="<?php echo htmlspecialchars($client["name"]); ?> logo" loading="lazy" />
+								<?php if (!empty($client["image_path"])): ?>
+									<img src="<?php echo htmlspecialchars($client["image_path"]); ?>" alt="<?php echo htmlspecialchars($client["name"]); ?> logo" loading="lazy" />
 								<?php endif; ?>
 								<span><?php echo htmlspecialchars($client["name"]); ?></span>
 							</div>
@@ -1159,8 +1187,8 @@ $siteLogoPath = get_site_logo_path();
 					<?php else: ?>
 						<?php foreach ($partners as $partner): ?>
 							<div class="logo">
-								<?php if (!empty($partner["image"])): ?>
-									<img src="<?php echo htmlspecialchars($partner["image"]); ?>" alt="<?php echo htmlspecialchars($partner["name"]); ?> logo" loading="lazy" />
+								<?php if (!empty($partner["image_path"])): ?>
+									<img src="<?php echo htmlspecialchars($partner["image_path"]); ?>" alt="<?php echo htmlspecialchars($partner["name"]); ?> logo" loading="lazy" />
 								<?php endif; ?>
 								<span><?php echo htmlspecialchars($partner["name"]); ?></span>
 							</div>
@@ -1284,9 +1312,6 @@ $siteLogoPath = get_site_logo_path();
 								<span>Send Email</span>
 								<span aria-hidden="true">→</span>
 							</button>
-							<div class="formHelp">
-								This opens your email app using <span style="font-family:var(--mono)">mailto:</span> (static site; no server processing).
-							</div>
 						</form>
 					</div>
 				</div>

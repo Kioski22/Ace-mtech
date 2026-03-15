@@ -10,7 +10,8 @@ $siteLogoPath = get_site_logo_path();
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -53,9 +54,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -281,7 +281,13 @@ $siteLogoPath = get_site_logo_path();
 					<?php else: ?>
 						<?php foreach ($socialLinks as $socialLink): ?>
 							<article class="socialCard">
-								<div class="socialIcon" aria-hidden="true"><?php echo $socialLink["icon"]; ?></div>
+								<div class="socialIcon" aria-hidden="true">
+									<?php if (!empty($socialLink["icon_path"])): ?>
+										<img src="<?php echo htmlspecialchars((string)$socialLink["icon_path"]); ?>" alt="" loading="lazy" />
+									<?php else: ?>
+										<?php echo $socialLink["icon"]; ?>
+									<?php endif; ?>
+								</div>
 								<h3><?php echo htmlspecialchars($socialLink["name"]); ?></h3>
 								<p><?php echo htmlspecialchars($socialLink["description"]); ?></p>
 								<a class="socialLink" href="<?php echo htmlspecialchars($socialLink["url"]); ?>" target="_blank" rel="noopener"><?php echo htmlspecialchars($socialLink["button_label"]); ?></a>

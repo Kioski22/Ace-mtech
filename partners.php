@@ -8,7 +8,8 @@ $siteLogoPath = get_site_logo_path();
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -50,9 +51,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -97,9 +97,9 @@ $siteLogoPath = get_site_logo_path();
 			<section id="partners" class="sectionAlt" aria-label="Partners">
 				<div class="sectionHead">
 					<div>
-						<h2>Partners</h2>
+						<h2>Our Partners</h2>
 						<p class="sectionDesc">
-							Technology and supply partners we work with. Swap these placeholders with real partner brands.
+							Ace-mtech Group are the trusted technology and supply partners of leading architectural, civil, electrical, and mechanical firms across the Philippines. We collaborate with industry-leading manufacturers to provide our clients with the best products and solutions for their projects.
 						</p>
 					</div>
 				</div>

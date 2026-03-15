@@ -2,12 +2,15 @@
 require_once __DIR__ . "/includes/repository.php";
 
 $siteLogoPath = get_site_logo_path();
+$ceoSettings = get_ceo_settings();
+$ceoPortraitPath = get_ceo_portrait_path();
 ?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -45,6 +48,24 @@ $siteLogoPath = get_site_logo_path();
 		.achievementCard p{margin:0;color:var(--muted);line-height:1.65;font-size:14px}
 		.ceoQuote{margin-top:18px;border-left:4px solid var(--brand);padding:14px 0 14px 16px;color:var(--muted);font-style:italic;line-height:1.75}
 		@media (max-width:960px){.ceoHero{grid-template-columns:1fr}.achievementGrid{grid-template-columns:1fr}.ceoPortrait{min-height:340px}}
+
+		/* ── Card animations ── */
+		@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+		@keyframes fadeScale{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+		.animReady .ceoBadge{opacity:0;animation:fadeUp .5s ease forwards}
+		.animReady .sectionHead h2{opacity:0;animation:fadeUp .5s ease .1s forwards}
+		.animReady .sectionHead .sectionDesc{opacity:0;animation:fadeUp .5s ease .18s forwards}
+		.animReady .ceoPortraitWrap{opacity:0;animation:fadeScale .6s ease .2s forwards}
+		.animReady .ceoHero > div:last-child > .card{opacity:0;animation:fadeUp .6s ease .35s forwards}
+		.animReady .stat{opacity:0;animation:fadeUp .4s ease forwards}
+		.animReady .stat:nth-child(1){animation-delay:.45s}
+		.animReady .stat:nth-child(2){animation-delay:.55s}
+		.animReady .stat:nth-child(3){animation-delay:.65s}
+		.animReady .stat:nth-child(4){animation-delay:.75s}
+
+		.achievementCard{opacity:0;transform:translateY(30px);transition:opacity .5s ease,transform .5s ease}
+		.achievementCard.visible{opacity:1;transform:translateY(0)}
 	</style>
 </head>
 
@@ -62,9 +83,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -109,26 +129,28 @@ $siteLogoPath = get_site_logo_path();
 			<section class="sectionAlt" aria-label="Meet our CEO">
 				<div class="sectionHead">
 					<div>
-						<span class="ceoBadge">Leadership Spotlight</span>
-						<h2 style="margin-top:12px">Meet Our CEO</h2>
-						<p class="sectionDesc">A visionary builder and engineering leader dedicated to innovation, excellence, and nation-building through sustainable infrastructure.</p>
+						<span class="ceoBadge"><?php echo htmlspecialchars((string)$ceoSettings["ceo_badge"]); ?></span>
+						<h2 style="margin-top:12px"><?php echo htmlspecialchars((string)$ceoSettings["ceo_heading"]); ?></h2>
+						<p class="sectionDesc"><?php echo htmlspecialchars((string)$ceoSettings["ceo_description"]); ?></p>
 					</div>
 				</div>
 
 				<div class="ceoHero">
 					<div class="ceoPortraitWrap">
-						<img class="ceoPortrait" src="source_img/ceo-placeholder.svg" alt="Portrait of Ace-mtech Chief Executive Officer" />
+						<img class="ceoPortrait" src="<?php echo htmlspecialchars($ceoPortraitPath); ?>" alt="Portrait of <?php echo htmlspecialchars((string)$ceoSettings["ceo_name"]); ?>" />
 					</div>
 					<div>
 						<div class="card" style="height:100%">
-							<h3 style="margin-top:0">Engr. Alexander C. Estrella</h3>
-							<p style="margin:0;color:var(--muted)">Founder & Chief Executive Officer, Ace‑mtech Group Incorporated</p>
-							<p class="ceoQuote">"Our mission is simple: deliver infrastructure that improves everyday life while mentoring the next generation of Filipino engineers and builders."</p>
+							<h3 style="margin-top:0"><?php echo htmlspecialchars((string)$ceoSettings["ceo_name"]); ?></h3>
+							<p style="margin:0;color:var(--muted)"><?php echo htmlspecialchars((string)$ceoSettings["ceo_role"]); ?></p>
+							<p class="ceoQuote">"<?php echo htmlspecialchars((string)$ceoSettings["ceo_quote"]); ?>"</p>
 							<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:8px">
-								<div class="stat"><b>20+ Years</b><span>Industry Leadership</span></div>
-								<div class="stat"><b>500+</b><span>Projects Delivered</span></div>
-								<div class="stat"><b>120+</b><span>Team Members Mentored</span></div>
-								<div class="stat"><b>Nationwide</b><span>Project Coverage</span></div>
+								<?php foreach (($ceoSettings["stats"] ?? []) as $stat): ?>
+									<div class="stat">
+										<b><?php echo htmlspecialchars((string)($stat["value"] ?? "")); ?></b>
+										<span><?php echo htmlspecialchars((string)($stat["label"] ?? "")); ?></span>
+									</div>
+								<?php endforeach; ?>
 							</div>
 						</div>
 					</div>
@@ -138,31 +160,20 @@ $siteLogoPath = get_site_logo_path();
 			<section aria-label="Life achievements">
 				<div class="sectionHead">
 					<div>
-						<h2>Life Achievements</h2>
-						<p class="sectionDesc">A timeline of key milestones that shaped his leadership journey.</p>
+						<h2><?php echo htmlspecialchars((string)$ceoSettings["ceo_achievements_heading"]); ?></h2>
+						<p class="sectionDesc"><?php echo htmlspecialchars((string)$ceoSettings["ceo_achievements_description"]); ?></p>
 					</div>
 				</div>
 				<div class="achievementGrid">
-					<article class="achievementCard">
-						<div class="achievementYear">2003</div>
-						<h3>Licensed Engineer & Early Career</h3>
-						<p>Earned professional engineering credentials and led multidisciplinary construction support teams on institutional and commercial facilities.</p>
-					</article>
-					<article class="achievementCard">
-						<div class="achievementYear">2010</div>
-						<h3>Founded Ace‑mtech Group</h3>
-						<p>Established Ace‑mtech with a clear vision: integrated architecture, civil, electrical, and mechanical engineering under one trusted brand.</p>
-					</article>
-					<article class="achievementCard">
-						<div class="achievementYear">2016</div>
-						<h3>Major Infrastructure Milestone</h3>
-						<p>Successfully delivered large-scale industrial and commercial systems, including HVAC, fire protection, and automation packages.</p>
-					</article>
-					<article class="achievementCard">
-						<div class="achievementYear">2024</div>
-						<h3>Leadership & Community Impact</h3>
-						<p>Expanded operations while championing technical mentorship programs, safety-first culture, and local workforce development initiatives.</p>
-					</article>
+					<?php foreach (($ceoSettings["achievements"] ?? []) as $achievement): ?>
+						<article class="achievementCard">
+							<?php if (trim((string)($achievement["year"] ?? "")) !== ""): ?>
+								<div class="achievementYear"><?php echo htmlspecialchars((string)$achievement["year"]); ?></div>
+							<?php endif; ?>
+							<h3><?php echo htmlspecialchars((string)($achievement["title"] ?? "")); ?></h3>
+							<p><?php echo htmlspecialchars((string)($achievement["description"] ?? "")); ?></p>
+						</article>
+					<?php endforeach; ?>
 				</div>
 			</section>
 		</div>
@@ -185,5 +196,24 @@ $siteLogoPath = get_site_logo_path();
 	</footer>
 
 <?php include 'scripts.php'; ?>
+<script>
+(function(){
+	document.getElementById('content').classList.add('animReady');
+
+	var cards=document.querySelectorAll('.achievementCard');
+	if(!cards.length)return;
+	var io=new IntersectionObserver(function(entries){
+		entries.forEach(function(e){
+			if(e.isIntersecting){
+				var i=[].indexOf.call(cards,e.target);
+				e.target.style.transitionDelay=(i*0.1)+'s';
+				e.target.classList.add('visible');
+				io.unobserve(e.target);
+			}
+		});
+	},{threshold:0.15});
+	cards.forEach(function(c){io.observe(c);});
+})();
+</script>
 </body>
 </html>

@@ -93,7 +93,7 @@ header{
 }
 .brand{
 	display:flex; gap:8px; align-items:center;
-	flex-shrink: 0;
+	min-width: 0;
 }
 .mark{
 	width: 48px; height:48px;
@@ -119,6 +119,7 @@ header{
 	transition: all 0.3s ease;
 	box-shadow: var(--shadow-sm);
 	flex-shrink: 0;
+	margin-right: 10px;
 }
 .themeToggle:hover{
 	background: var(--bg-soft);
@@ -133,15 +134,15 @@ header{
 
 .menuBtn{
 	display:none;
-	align-items:center; gap:6px;
+	align-items:center; justify-content:center;
 	border:1px solid var(--stroke);
 	background: var(--panel);
 	color: var(--text);
-	padding:8px 12px;
+	width:40px; height:40px;
 	border-radius:10px;
 	cursor:pointer;
 	transition: all 0.3s ease;
-	font-size: 13px;
+	font-size: 18px;
 	flex-shrink: 0;
 }
 .menuBtn:hover{
@@ -783,12 +784,18 @@ body.gallery-modal-open #fb-customer-chat{
 	height:100%;
 	display:block;
 }
+.socialIcon img{
+	width:100%;
+	height:100%;
+	object-fit:contain;
+	display:block;
+}
 .socialIcon i{
 	font-size:40px;
 	display:block;
 }
 .socialIcon i.fa-instagram{
-	font-size:65px;
+	font-size:150px;
 	background: linear-gradient(135deg, #E1306C 0%, #F77737 25%, #FD1D1D 50%);
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
@@ -910,13 +917,22 @@ footer{
 
 @media (max-width: 940px){
 	.heroGrid{grid-template-columns: 1fr}
-	.stats{grid-template-columns: repeat(3, minmax(0, 1fr))}
+	.stats{grid-template-columns: repeat(2, minmax(0, 1fr))}
 	.logos{grid-template-columns: repeat(3, minmax(0, 1fr))}
 	.hero{padding: 56px 0 24px}
 }
 @media (max-width: 760px){
-	.themeToggle{width:36px; height:36px}
-	.menuBtn{display:inline-flex}
+	.nav{overflow:hidden}
+	.brand{flex:1 1 0; min-width:0; overflow:hidden}
+	.brand span{display:block; min-width:0; overflow:hidden}
+	.brand .title{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+	.brand .tag{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:block}
+	.mark{width:36px; height:36px; flex-shrink:0}
+	.themeToggle{width:36px; height:36px; align-self:center; margin-right:0}
+	.menuBtn{display:inline-flex; flex-shrink:0}
+	.stats{grid-template-columns: 1fr}
+	.stat b{font-size:15px}
+	.stat span{font-size:12px}
 	.navlinks{
 		display:none;
 		position:absolute;

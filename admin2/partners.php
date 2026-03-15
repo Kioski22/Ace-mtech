@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . "/../includes/admin-auth.php";
 require_once __DIR__ . "/../includes/repository.php";
+require_once __DIR__ . "/../includes/image-upload.php";
 
 require_admin_login();
 
@@ -8,50 +9,68 @@ $errors = [];
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-	$name = trim($_POST["name"] ?? "");
-	if ($name === "") {
-		$errors[] = "Partner name is required.";
-	}
+	$action = (string)($_POST["action"] ?? "add");
 
-	if (!isset($_FILES["photo"]) || $_FILES["photo"]["error"] !== UPLOAD_ERR_OK) {
-		$errors[] = "Partner photo is required.";
-	}
+	if ($action === "delete") {
+		$id = (int)($_POST["id"] ?? 0);
+		$partner = $id > 0 ? get_partner($id) : null;
 
-	if (!$errors) {
-		$uploadDir = __DIR__ . "/../source_img/partners";
-		if (!is_dir($uploadDir)) {
-			mkdir($uploadDir, 0775, true);
+		if (!$partner) {
+			$errors[] = "Invalid partner.";
+		} elseif (!delete_partner($id)) {
+			$errors[] = "Failed to delete partner.";
+		} else {
+			if (!empty($partner["image_path"])) {
+				delete_uploaded_image_file((string)$partner["image_path"]);
+			}
+			$success = "Partner deleted successfully.";
+		}
+	} else {
+		$name = trim($_POST["name"] ?? "");
+		if ($name === "") {
+			$errors[] = "Partner name is required.";
 		}
 
-		$file = $_FILES["photo"];
-		$ext = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
-		$allowed = ["jpg", "jpeg", "png", "webp"];
-		if (!in_array($ext, $allowed, true)) {
-			$errors[] = "Photo must be a JPG, PNG, or WEBP file.";
-		}
-
-		$finfo = finfo_open(FILEINFO_MIME_TYPE);
-		$mime = $finfo ? finfo_file($finfo, $file["tmp_name"]) : "";
-		if ($finfo) {
-			finfo_close($finfo);
-		}
-		$allowedMime = ["image/jpeg", "image/png", "image/webp"];
-		if ($mime && !in_array($mime, $allowedMime, true)) {
-			$errors[] = "Photo must be a valid image file.";
+		if (!isset($_FILES["photo"]) || $_FILES["photo"]["error"] !== UPLOAD_ERR_OK) {
+			$errors[] = "Partner photo is required.";
 		}
 
 		if (!$errors) {
-			$filename = "partner-" . date("YmdHis") . "-" . bin2hex(random_bytes(4)) . "." . $ext;
-			$targetPath = $uploadDir . "/" . $filename;
-			if (move_uploaded_file($file["tmp_name"], $targetPath)) {
-				$relativePath = "source_img/partners/" . $filename;
-				if (add_partner($name, $relativePath)) {
-					$success = "Partner added successfully.";
+			$uploadDir = __DIR__ . "/../source_img/partners";
+			if (!is_dir($uploadDir)) {
+				mkdir($uploadDir, 0775, true);
+			}
+
+			$file = $_FILES["photo"];
+			$ext = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+			$allowed = ["jpg", "jpeg", "png", "webp"];
+			if (!in_array($ext, $allowed, true)) {
+				$errors[] = "Photo must be a JPG, PNG, or WEBP file.";
+			}
+
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mime = $finfo ? finfo_file($finfo, $file["tmp_name"]) : "";
+			if ($finfo) {
+				finfo_close($finfo);
+			}
+			$allowedMime = ["image/jpeg", "image/png", "image/webp"];
+			if ($mime && !in_array($mime, $allowedMime, true)) {
+				$errors[] = "Photo must be a valid image file.";
+			}
+
+			if (!$errors) {
+				$filename = "partner-" . date("YmdHis") . "-" . bin2hex(random_bytes(4)) . "." . $ext;
+				$targetPath = $uploadDir . "/" . $filename;
+				if (move_uploaded_file($file["tmp_name"], $targetPath)) {
+					$relativePath = "source_img/partners/" . $filename;
+					if (add_partner($name, $relativePath)) {
+						$success = "Partner added successfully.";
+					} else {
+						$errors[] = "Failed to save partner list.";
+					}
 				} else {
-					$errors[] = "Failed to save partner list.";
+					$errors[] = "Failed to upload photo.";
 				}
-			} else {
-				$errors[] = "Failed to upload photo.";
 			}
 		}
 	}
@@ -63,7 +82,8 @@ $partners = get_partners();
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" />
 	<title>Partners · Ace-mtech Admin</title>
 	<style>
 		*{box-sizing:border-box;margin:0;padding:0}
@@ -96,6 +116,8 @@ $partners = get_partners();
 		.adminBtnPrimary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(22,163,74,0.35)}
 		.adminBtnSecondary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#fff;color:#0f172a;text-decoration:none;border:1.5px solid #e2e8f0;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s}
 		.adminBtnSecondary:hover{background:#f8fafc;border-color:#16a34a}
+		.adminBtnDanger{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#fff;color:#991b1b;text-decoration:none;border:1.5px solid #fca5a5;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s;cursor:pointer}
+		.adminBtnDanger:hover{background:#fee2e2;border-color:#ef4444}
 		.alert{padding:14px 18px;border-radius:12px;margin-bottom:24px;font-size:14px;line-height:1.6}
 		.alert.error{background:#fee2e2;border:1.5px solid #fca5a5;color:#991b1b}
 		.alert.success{background:#dcfce7;border:1.5px solid #86efac;color:#166534}
@@ -105,6 +127,7 @@ $partners = get_partners();
 		.previewCard img{max-width:100%;max-height:70px;object-fit:contain;display:block;margin:0 auto 12px}
 		.previewCard>div{font-weight:600;font-size:14px;color:#0f172a;margin-bottom:12px}
 		.previewActions{margin-top:12px;display:flex;justify-content:center;gap:8px}
+		.inlineForm{margin:0}
 		@media (max-width:1024px){.adminSidebar{width:220px}.adminMain{margin-left:220px;max-width:calc(100% - 220px)}}
 		@media (max-width:768px){.adminSidebar{width:70px}.adminSidebar .adminBrand h2,.adminSidebar .adminBrand p,.adminNav span{display:none}.adminNav a{justify-content:center;padding:14px}.adminMain{margin-left:70px;max-width:calc(100% - 70px);padding:24px 16px}.adminPageHeader h1{font-size:26px}.formGrid{grid-template-columns:1fr}}
 	</style>
@@ -125,6 +148,7 @@ $partners = get_partners();
 				<li><a href="gallery.php"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Gallery</span></a></li>
 				<li><a href="news.php"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>News</span></a></li>
 				<li><a href="social-links.php"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>Social Links</span></a></li>
+				<li><a href="ceo.php"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg><span>CEO Content</span></a></li>
 				<li class="adminNavDivider"></li>
 				<li><a href="../admin/messages/admin.html"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>Messages</span></a></li>
 				<li><a href="../index.php"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>View Site</span></a></li>
@@ -150,6 +174,7 @@ $partners = get_partners();
 		<div class="adminCard" style="margin-bottom:20px">
 			<h3>Add Partner</h3>
 			<form method="post" enctype="multipart/form-data">
+				<input type="hidden" name="action" value="add" />
 				<div class="formGrid">
 					<div>
 						<label for="name">Partner Name</label>
@@ -178,6 +203,11 @@ $partners = get_partners();
 							<div><?php echo htmlspecialchars($partner["name"]); ?></div>
 							<div class="previewActions">
 								<a class="adminBtnSecondary" href="edit-partner.php?id=<?php echo (int)$partner["id"]; ?>">Edit</a>
+								<form class="inlineForm" method="post" onsubmit="return confirm('Delete this partner?');">
+									<input type="hidden" name="action" value="delete" />
+									<input type="hidden" name="id" value="<?php echo (int)$partner["id"]; ?>" />
+									<button class="adminBtnDanger" type="submit">Delete</button>
+								</form>
 							</div>
 						</div>
 					<?php endforeach; ?>

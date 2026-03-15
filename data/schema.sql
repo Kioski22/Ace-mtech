@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS products (
 	name VARCHAR(150) NOT NULL,
 	description TEXT NULL,
 	image_path VARCHAR(255) NOT NULL,
+	show_in_services TINYINT(1) NOT NULL DEFAULT 0,
+	services_order INT NOT NULL DEFAULT 0,
 	created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

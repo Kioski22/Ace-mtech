@@ -10,6 +10,33 @@ function table_exists(PDO $pdo, string $tableName): bool
 	return (bool)$stmt->fetchColumn();
 }
 
+function column_exists(PDO $pdo, string $tableName, string $columnName): bool
+{
+	$stmt = $pdo->prepare(
+		"SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table_name AND COLUMN_NAME = :column_name"
+	);
+	$stmt->execute([
+		":table_name" => $tableName,
+		":column_name" => $columnName,
+	]);
+	return (int)($stmt->fetchColumn() ?: 0) > 0;
+}
+
+function ensure_products_service_columns(PDO $pdo): void
+{
+	if (!table_exists($pdo, "products")) {
+		return;
+	}
+
+	if (!column_exists($pdo, "products", "show_in_services")) {
+		$pdo->exec("ALTER TABLE products ADD COLUMN show_in_services TINYINT(1) NOT NULL DEFAULT 0");
+	}
+
+	if (!column_exists($pdo, "products", "services_order")) {
+		$pdo->exec("ALTER TABLE products ADD COLUMN services_order INT NOT NULL DEFAULT 0");
+	}
+}
+
 function sync_product_gallery_post_cover_with_pdo(PDO $pdo, int $postId): void
 {
 	$stmt = $pdo->prepare(
@@ -202,6 +229,8 @@ function ensure_schema(): void
 		. "\tname VARCHAR(150) NOT NULL,\n"
 		. "\tdescription TEXT NULL,\n"
 		. "\timage_path VARCHAR(255) NOT NULL,\n"
+		. "\tshow_in_services TINYINT(1) NOT NULL DEFAULT 0,\n"
+		. "\tservices_order INT NOT NULL DEFAULT 0,\n"
 		. "\tcreated_at DATETIME NOT NULL\n"
 		. ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
 	);
@@ -271,6 +300,7 @@ function ensure_schema(): void
 
 	migrate_legacy_product_gallery($pdo);
 	seed_social_links_if_missing($pdo);
+	ensure_products_service_columns($pdo);
 
 	$ready = true;
 }
@@ -367,6 +397,16 @@ function update_client(int $id, string $name, ?string $imagePath): bool
 	]);
 }
 
+function delete_client(int $id): bool
+{
+	ensure_schema();
+	$pdo = db();
+	$stmt = $pdo->prepare("DELETE FROM clients WHERE id = :id");
+	return $stmt->execute([
+		":id" => $id,
+	]);
+}
+
 function get_partners(): array
 {
 	ensure_schema();
@@ -415,11 +455,31 @@ function update_partner(int $id, string $name, ?string $imagePath): bool
 	]);
 }
 
+function delete_partner(int $id): bool
+{
+	ensure_schema();
+	$pdo = db();
+	$stmt = $pdo->prepare("DELETE FROM partners WHERE id = :id");
+	return $stmt->execute([
+		":id" => $id,
+	]);
+}
+
 function get_products(): array
 {
 	ensure_schema();
 	$pdo = db();
-	$stmt = $pdo->query("SELECT id, name, description, image_path, created_at FROM products ORDER BY created_at DESC");
+	$stmt = $pdo->query("SELECT id, name, description, image_path, show_in_services, services_order, created_at FROM products ORDER BY created_at DESC");
+	return $stmt->fetchAll();
+}
+
+function get_service_products(): array
+{
+	ensure_schema();
+	$pdo = db();
+	$stmt = $pdo->query(
+		"SELECT id, name, description, image_path, show_in_services, services_order, created_at FROM products WHERE show_in_services = 1 ORDER BY services_order ASC, created_at DESC"
+	);
 	return $stmt->fetchAll();
 }
 
@@ -427,41 +487,65 @@ function get_product(int $id): ?array
 {
 	ensure_schema();
 	$pdo = db();
-	$stmt = $pdo->prepare("SELECT id, name, description, image_path, created_at FROM products WHERE id = :id LIMIT 1");
+	$stmt = $pdo->prepare("SELECT id, name, description, image_path, show_in_services, services_order, created_at FROM products WHERE id = :id LIMIT 1");
 	$stmt->execute([":id" => $id]);
 	$row = $stmt->fetch();
 	return $row ?: null;
 }
 
-function add_product(string $name, string $description, string $imagePath): bool
+function add_product(string $name, string $description, string $imagePath, bool $showInServices = false, int $servicesOrder = 0): bool
 {
 	ensure_schema();
 	$pdo = db();
-	$stmt = $pdo->prepare("INSERT INTO products (name, description, image_path, created_at) VALUES (:name, :description, :image, NOW())");
+	$stmt = $pdo->prepare(
+		"INSERT INTO products (name, description, image_path, show_in_services, services_order, created_at) VALUES (:name, :description, :image, :show_in_services, :services_order, NOW())"
+	);
 	return $stmt->execute([
 		":name" => $name,
 		":description" => $description,
 		":image" => $imagePath,
+		":show_in_services" => $showInServices ? 1 : 0,
+		":services_order" => $servicesOrder,
 	]);
 }
 
-function update_product(int $id, string $name, string $description, ?string $imagePath): bool
+function update_product(int $id, string $name, string $description, ?string $imagePath, ?bool $showInServices = null, ?int $servicesOrder = null): bool
 {
 	ensure_schema();
 	$pdo = db();
-	if ($imagePath) {
-		$stmt = $pdo->prepare("UPDATE products SET name = :name, description = :description, image_path = :image WHERE id = :id");
-		return $stmt->execute([
-			":name" => $name,
-			":description" => $description,
-			":image" => $imagePath,
-			":id" => $id,
-		]);
-	}
-	$stmt = $pdo->prepare("UPDATE products SET name = :name, description = :description WHERE id = :id");
-	return $stmt->execute([
+	$setParts = ["name = :name", "description = :description"];
+	$params = [
 		":name" => $name,
 		":description" => $description,
+		":id" => $id,
+	];
+
+	if ($imagePath) {
+		$setParts[] = "image_path = :image";
+		$params[":image"] = $imagePath;
+	}
+
+	if ($showInServices !== null) {
+		$setParts[] = "show_in_services = :show_in_services";
+		$params[":show_in_services"] = $showInServices ? 1 : 0;
+	}
+
+	if ($servicesOrder !== null) {
+		$setParts[] = "services_order = :services_order";
+		$params[":services_order"] = $servicesOrder;
+	}
+
+	$sql = "UPDATE products SET " . implode(", ", $setParts) . " WHERE id = :id";
+	$stmt = $pdo->prepare($sql);
+	return $stmt->execute($params);
+}
+
+function delete_product(int $id): bool
+{
+	ensure_schema();
+	$pdo = db();
+	$stmt = $pdo->prepare("DELETE FROM products WHERE id = :id");
+	return $stmt->execute([
 		":id" => $id,
 	]);
 }
@@ -862,8 +946,10 @@ function get_social_links(bool $includeHidden = false): array
 		}
 
 		$meta = $catalog[$platformKey];
+		$iconPath = get_social_icon_path($platformKey);
 		$row["name"] = $meta["name"];
 		$row["icon"] = $meta["icon"];
+		$row["icon_path"] = $iconPath;
 		$row["description"] = $meta["description"];
 		$row["button_label"] = $meta["button_label"];
 		$links[] = $row;
@@ -896,6 +982,41 @@ function update_social_link_settings(int $id, string $url, int $displayOrder, bo
 		":is_visible" => $isVisible ? 1 : 0,
 		":id" => $id,
 	]);
+}
+
+function social_icon_setting_key(string $platformKey): string
+{
+	$sanitized = strtolower(trim($platformKey));
+	if (!preg_match('/^[a-z0-9_-]+$/', $sanitized)) {
+		return '';
+	}
+
+	return 'social_icon_' . $sanitized;
+}
+
+function get_social_icon_path(string $platformKey): string
+{
+	$settingKey = social_icon_setting_key($platformKey);
+	if ($settingKey === '') {
+		return '';
+	}
+
+	$path = get_site_setting($settingKey, '');
+	if ($path === null) {
+		return '';
+	}
+
+	return trim((string)$path);
+}
+
+function set_social_icon_path(string $platformKey, string $iconPath): bool
+{
+	$settingKey = social_icon_setting_key($platformKey);
+	if ($settingKey === '') {
+		return false;
+	}
+
+	return set_site_setting($settingKey, trim($iconPath));
 }
 
 function get_site_setting(string $key, ?string $defaultValue = null): ?string
@@ -940,4 +1061,107 @@ function get_site_logo_path(): string
 function set_site_logo_path(string $logoPath): bool
 {
 	return set_site_setting("site_logo_path", $logoPath);
+}
+
+function ceo_settings_defaults(): array
+{
+	return [
+		"ceo_badge" => "Leadership Spotlight",
+		"ceo_heading" => "Meet Our CEO",
+		"ceo_description" => "A visionary builder and engineering leader dedicated to innovation, excellence, and nation-building through sustainable infrastructure.",
+		"ceo_portrait_path" => "source_img/ceo-placeholder.svg",
+		"ceo_name" => "Engr. Alexander C. Estrella",
+		"ceo_role" => "Founder & Chief Executive Officer, Ace-mtech Group Incorporated",
+		"ceo_quote" => "Our mission is simple: deliver infrastructure that improves everyday life while mentoring the next generation of Filipino engineers and builders.",
+		"ceo_stat_1_value" => "20+ Years",
+		"ceo_stat_1_label" => "Industry Leadership",
+		"ceo_stat_2_value" => "500+",
+		"ceo_stat_2_label" => "Projects Delivered",
+		"ceo_stat_3_value" => "120+",
+		"ceo_stat_3_label" => "Team Members Mentored",
+		"ceo_stat_4_value" => "Nationwide",
+		"ceo_stat_4_label" => "Project Coverage",
+		"ceo_achievements_heading" => "Life Achievements",
+		"ceo_achievements_description" => "A timeline of key milestones that shaped his leadership journey.",
+		"ceo_achievement_1_year" => "2003",
+		"ceo_achievement_1_title" => "Licensed Engineer & Early Career",
+		"ceo_achievement_1_description" => "Earned professional engineering credentials and led multidisciplinary construction support teams on institutional and commercial facilities.",
+		"ceo_achievement_2_year" => "2010",
+		"ceo_achievement_2_title" => "Founded Ace-mtech Group",
+		"ceo_achievement_2_description" => "Established Ace-mtech with a clear vision: integrated architecture, civil, electrical, and mechanical engineering under one trusted brand.",
+		"ceo_achievement_3_year" => "2016",
+		"ceo_achievement_3_title" => "Major Infrastructure Milestone",
+		"ceo_achievement_3_description" => "Successfully delivered large-scale industrial and commercial systems, including HVAC, fire protection, and automation packages.",
+		"ceo_achievement_4_year" => "2024",
+		"ceo_achievement_4_title" => "Leadership & Community Impact",
+		"ceo_achievement_4_description" => "Expanded operations while championing technical mentorship programs, safety-first culture, and local workforce development initiatives.",
+	];
+}
+
+function get_ceo_settings(): array
+{
+	$defaults = ceo_settings_defaults();
+	$settings = [];
+
+	foreach ($defaults as $key => $defaultValue) {
+		$value = get_site_setting($key, $defaultValue);
+		$value = is_string($value) ? trim($value) : "";
+		$settings[$key] = $value !== "" ? $value : $defaultValue;
+	}
+
+	$settings["stats"] = [];
+	for ($i = 1; $i <= 4; $i++) {
+		$settings["stats"][] = [
+			"value" => (string)$settings["ceo_stat_{$i}_value"],
+			"label" => (string)$settings["ceo_stat_{$i}_label"],
+		];
+	}
+
+	$settings["achievements"] = [];
+	for ($i = 1; $i <= 4; $i++) {
+		$year = get_site_setting("ceo_achievement_{$i}_year", "");
+		$year = is_string($year) ? trim($year) : "";
+
+		$settings["achievements"][] = [
+			"year" => $year,
+			"title" => (string)$settings["ceo_achievement_{$i}_title"],
+			"description" => (string)$settings["ceo_achievement_{$i}_description"],
+		];
+	}
+
+	return $settings;
+}
+
+function set_ceo_settings(array $settings): bool
+{
+	$defaults = ceo_settings_defaults();
+	$success = true;
+
+	foreach ($defaults as $key => $_defaultValue) {
+		if (!array_key_exists($key, $settings)) {
+			continue;
+		}
+
+		$value = trim((string)$settings[$key]);
+		if (!set_site_setting($key, $value)) {
+			$success = false;
+		}
+	}
+
+	return $success;
+}
+
+function get_ceo_portrait_path(): string
+{
+	$portraitPath = get_site_setting("ceo_portrait_path", "source_img/ceo-placeholder.svg");
+	if ($portraitPath === null || trim($portraitPath) === "") {
+		return "source_img/ceo-placeholder.svg";
+	}
+
+	return (string)$portraitPath;
+}
+
+function set_ceo_portrait_path(string $portraitPath): bool
+{
+	return set_site_setting("ceo_portrait_path", $portraitPath);
 }

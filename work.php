@@ -2,12 +2,14 @@
 require_once __DIR__ . "/includes/repository.php";
 
 $siteLogoPath = get_site_logo_path();
+$services = get_service_products();
 ?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="<?php echo htmlspecialchars($siteLogoPath); ?>" />
 	<meta name="theme-color" content="#16a34a" />
 	<script>
 		(function () {
@@ -49,9 +51,8 @@ $siteLogoPath = get_site_logo_path();
 					</span>
 				</a>
 
-				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks">
+				<button class="menuBtn" id="menuBtn" type="button" aria-expanded="false" aria-controls="navlinks" aria-label="Menu">
 					<span aria-hidden="true">☰</span>
-					<span>Menu</span>
 				</button>
 
 				<div class="navlinks" id="navlinks">
@@ -104,68 +105,86 @@ $siteLogoPath = get_site_logo_path();
 				</div>
 
 				<div class="grid">
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-								<polyline points="9 22 9 12 15 12 15 22" />
-							</svg>
-						</div>
-						<h3>Architectural & Civil Works</h3>
-						<p>Construction, renovation, residential, commercial building, office fit-out, industrial building, power house, and substation projects.</p>
-					</article>
+					<?php if ($services): ?>
+						<?php foreach ($services as $service): ?>
+							<article class="card">
+								<?php if (!empty($service["image_path"])): ?>
+									<div class="productMedia">
+										<img src="<?php echo htmlspecialchars($service["image_path"]); ?>" alt="<?php echo htmlspecialchars($service["name"]); ?>" loading="lazy" />
+									</div>
+								<?php endif; ?>
+								<h3><?php echo htmlspecialchars($service["name"]); ?></h3>
+								<?php if (!empty($service["description"])): ?>
+									<p><?php echo htmlspecialchars($service["description"]); ?></p>
+								<?php else: ?>
+									<p>Comprehensive construction and engineering support tailored to your project requirements.</p>
+								<?php endif; ?>
+							</article>
+						<?php endforeach; ?>
+					<?php else: ?>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+									<polyline points="9 22 9 12 15 12 15 22" />
+								</svg>
+							</div>
+							<h3>Architectural & Civil Works</h3>
+							<p>Construction, renovation, residential, commercial building, office fit-out, industrial building, power house, and substation projects.</p>
+						</article>
 
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-							</svg>
-						</div>
-						<h3>Electrical Works</h3>
-						<p>Electrical construction, building automation (fire alarm, CCTV, CATV), switchgear maintenance, power generator installation, and lightning protection.</p>
-					</article>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+								</svg>
+							</div>
+							<h3>Electrical Works</h3>
+							<p>Electrical construction, building automation (fire alarm, CCTV, CATV), switchgear maintenance, power generator installation, and lightning protection.</p>
+						</article>
 
-					<article class="card">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-								<polyline points="14 2 14 8 20 8" />
-								<path d="M12 18v-6" />
-								<path d="M9 15l3 3 3-3" />
-							</svg>
-						</div>
-						<h3>Mechanical Works</h3>
-						<p>HVAC systems, refrigeration, air conditioning, fire protection, sprinkler systems, process piping, chilled water, refrigerant piping, and ducting works.</p>
-					</article>
+						<article class="card">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+									<polyline points="14 2 14 8 20 8" />
+									<path d="M12 18v-6" />
+									<path d="M9 15l3 3 3-3" />
+								</svg>
+							</div>
+							<h3>Mechanical Works</h3>
+							<p>HVAC systems, refrigeration, air conditioning, fire protection, sprinkler systems, process piping, chilled water, refrigerant piping, and ducting works.</p>
+						</article>
 
-					<article class="card wide">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<path d="M12 2v10" />
-								<path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
-								<polyline points="8 10 12 6 16 10" />
-							</svg>
-						</div>
-						<h3>HVAC & Refrigeration Systems</h3>
-						<p>
-							Complete heating, ventilation, and air conditioning solutions. Refrigeration and air conditioning systems for commercial and industrial applications.
-							Authorized dealer and installer for Daikin, Samsung, LG, and Carrier equipment.
-						</p>
-					</article>
+						<article class="card wide">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<path d="M12 2v10" />
+									<path d="M18.4 6.6a9 9 0 1 1-12.8 0" />
+									<polyline points="8 10 12 6 16 10" />
+								</svg>
+							</div>
+							<h3>HVAC & Refrigeration Systems</h3>
+							<p>
+								Complete heating, ventilation, and air conditioning solutions. Refrigeration and air conditioning systems for commercial and industrial applications.
+								Authorized dealer and installer for Daikin, Samsung, LG, and Carrier equipment.
+							</p>
+						</article>
 
-					<article class="card wide">
-						<div class="icon" aria-hidden="true">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-								<rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
-								<polyline points="17 2 12 7 7 2" />
-							</svg>
-						</div>
-						<h3>Building Automation & Technical Works</h3>
-						<p>
-							Fire alarm and detection systems, CCTV, CATV/IP/BGM, telephone systems, infrared and thermographic inspection.
-							Complete facilities and maintenance works, preventive and corrective maintenance for all building systems.
-						</p>
-					</article>
+						<article class="card wide">
+							<div class="icon" aria-hidden="true">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+									<rect x="2" y="7" width="20" height="15" rx="2" ry="2" />
+									<polyline points="17 2 12 7 7 2" />
+								</svg>
+							</div>
+							<h3>Building Automation & Technical Works</h3>
+							<p>
+								Fire alarm and detection systems, CCTV, CATV/IP/BGM, telephone systems, infrared and thermographic inspection.
+								Complete facilities and maintenance works, preventive and corrective maintenance for all building systems.
+							</p>
+						</article>
+					<?php endif; ?>
 				</div>
 			</section>
 		</div>

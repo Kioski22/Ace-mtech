@@ -7,6 +7,11 @@ require_admin_login();
 
 $errors = [];
 $success = "";
+$socialLinks = get_social_links(true);
+$socialLinksById = [];
+foreach ($socialLinks as $socialLink) {
+	$socialLinksById[(int)$socialLink["id"]] = $socialLink;
+}
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	$action = (string)($_POST["action"] ?? "save_social");
@@ -34,6 +39,42 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 				} else {
 					$errors[] = "Failed to save website logo setting.";
 					delete_uploaded_image_file($newLogoPath);
+				}
+			}
+		}
+	} elseif ($action === "save_social_icon") {
+		$id = (int)($_POST["id"] ?? 0);
+		if ($id <= 0 || !isset($socialLinksById[$id])) {
+			$errors[] = "Invalid social link for icon update.";
+		} else {
+			$file = $_FILES["social_icon"] ?? null;
+			if (!$file || (int)($file["error"] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+				$errors[] = "Please choose an icon image to upload.";
+			} else {
+				$platformKey = (string)$socialLinksById[$id]["platform_key"];
+				$previousIconPath = get_social_icon_path($platformKey);
+				$newIconPath = upload_image_file(
+					$file,
+					__DIR__ . "/../source_img/icons",
+					"source_img/icons",
+					"social-" . $platformKey,
+					$errors
+				);
+
+				if (!$errors && $newIconPath !== null) {
+					if (set_social_icon_path($platformKey, $newIconPath)) {
+						$success = "Social icon updated.";
+						if (
+							$previousIconPath !== ""
+							&& $previousIconPath !== $newIconPath
+							&& strpos($previousIconPath, "source_img/icons/") === 0
+						) {
+							delete_uploaded_image_file($previousIconPath);
+						}
+					} else {
+						$errors[] = "Failed to save social icon setting.";
+						delete_uploaded_image_file($newIconPath);
+					}
 				}
 			}
 		}
@@ -66,16 +107,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			}
 		}
 	}
+
+	$socialLinks = get_social_links(true);
 }
 
-$socialLinks = get_social_links(true);
 $siteLogoPath = get_site_logo_path();
 ?>
 <!doctype html>
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" />
 	<title>Social Links · Ace-mtech Admin</title>
 	<style>
 		*{box-sizing:border-box;margin:0;padding:0}
@@ -117,6 +160,11 @@ $siteLogoPath = get_site_logo_path();
 		.formRow button{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s;box-shadow:0 2px 8px rgba(22,163,74,0.2);border:none;cursor:pointer}
 		.formRow button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,163,74,0.3)}
 		.badge{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;border-radius:999px;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;font-weight:700;font-size:16px}
+		.badge img{width:20px;height:20px;object-fit:contain;display:block}
+		.iconUploadRow{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:12px}
+		.iconUploadRow input[type="file"]{max-width:260px;padding:8px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-size:12px}
+		.iconUploadRow button{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:12px;transition:all 0.2s;box-shadow:0 2px 8px rgba(22,163,74,0.2);border:none;cursor:pointer}
+		.iconUploadRow button:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(22,163,74,0.3)}
 		.logoSettingRow{display:grid;grid-template-columns:140px 1fr;gap:18px;align-items:center}
 		.logoPreview{width:120px;height:120px;border:1.5px solid #e2e8f0;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;padding:10px}
 		.logoPreview img{max-width:100%;max-height:100%;object-fit:contain}
@@ -147,6 +195,7 @@ $siteLogoPath = get_site_logo_path();
 				<li><a href="gallery.php"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Gallery</span></a></li>
 				<li><a href="news.php"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>News</span></a></li>
 				<li><a href="social-links.php" class="active"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span>Social Links</span></a></li>
+				<li><a href="ceo.php"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg><span>CEO Content</span></a></li>
 				<li class="adminNavDivider"></li>
 				<li><a href="../admin/messages/admin.html"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span>Messages</span></a></li>
 				<li><a href="../index.php"><svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>View Site</span></a></li>
@@ -194,22 +243,42 @@ $siteLogoPath = get_site_logo_path();
 			<?php else: ?>
 				<div class="list">
 					<?php foreach ($socialLinks as $link): ?>
-						<form class="item" method="post">
+						<div class="item">
+							<form method="post" enctype="multipart/form-data">
+								<input type="hidden" name="action" value="save_social_icon" />
+								<input type="hidden" name="id" value="<?php echo (int)$link["id"]; ?>" />
+								<div class="itemHead">
+									<div>
+										<h4 class="itemTitle">
+											<span class="badge" aria-hidden="true">
+												<?php if (!empty($link["icon_path"])): ?>
+													<img src="../<?php echo htmlspecialchars((string)$link["icon_path"]); ?>" alt="<?php echo htmlspecialchars($link["name"]); ?> icon" />
+												<?php else: ?>
+													<?php echo $link["icon"]; ?>
+												<?php endif; ?>
+											</span>
+											<?php echo htmlspecialchars($link["name"]); ?>
+										</h4>
+										<p class="itemDesc"><?php echo htmlspecialchars($link["description"]); ?></p>
+									</div>
+								</div>
+								<div class="iconUploadRow">
+									<input type="file" name="social_icon" accept="<?php echo htmlspecialchars(supported_image_accept_value()); ?>" required />
+									<button type="submit"><span>Update Icon</span></button>
+								</div>
+							</form>
+
+							<form method="post">
 							<input type="hidden" name="action" value="save_social" />
 							<input type="hidden" name="id" value="<?php echo (int)$link["id"]; ?>" />
-							<div class="itemHead">
-								<div>
-									<h4 class="itemTitle"><span class="badge" aria-hidden="true"><?php echo htmlspecialchars($link["icon"]); ?></span> <?php echo htmlspecialchars($link["name"]); ?></h4>
-									<p class="itemDesc"><?php echo htmlspecialchars($link["description"]); ?></p>
-								</div>
-							</div>
 							<div class="formRow">
 								<input type="url" name="url" value="<?php echo htmlspecialchars((string)$link["url"]); ?>" required />
 								<input type="number" name="display_order" value="<?php echo (int)$link["display_order"]; ?>" />
 								<label><input type="checkbox" name="is_visible" <?php echo (int)$link["is_visible"] === 1 ? "checked" : ""; ?> /> Visible</label>
 								<button class="formRow button" type="submit"><span>Save</span></button>
 							</div>
-						</form>
+							</form>
+						</div>
 					<?php endforeach; ?>
 				</div>
 			<?php endif; ?>
