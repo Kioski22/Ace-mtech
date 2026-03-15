@@ -187,7 +187,8 @@
 								try {
 									return JSON.parse(raw);
 								} catch (err) {
-									var preview = (raw || '').trim();
+									var safeRaw = typeof raw === 'string' ? raw : String(raw || '');
+									var preview = safeRaw.trim();
 									if (preview.length > 140) {
 										preview = preview.slice(0, 140) + '...';
 									}
