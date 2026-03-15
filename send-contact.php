@@ -115,13 +115,13 @@ if (!$savedLocally) {
 	exit;
 }
 
-$contactEmailMode = strtolower(trim((string)(getenv('CONTACT_EMAIL_MODE') ?: 'off')));
+$contactEmailMode = strtolower(trim((string)(getenv('CONTACT_EMAIL_MODE') ?: 'sync')));
 if ($contactEmailMode !== 'sync') {
 	echo json_encode([
 		'ok' => true,
 		'saved_local' => true,
 		'request_id' => $requestId,
-		'message' => 'Request received successfully. Our team will review it and contact you shortly.'
+		'message' => 'Request recorded locally. Email notification is currently disabled, so no email was sent.'
 	]);
 	exit;
 }
