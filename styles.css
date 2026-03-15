@@ -883,6 +883,10 @@ input:focus, textarea:focus{
 }
 .formHelp{color: var(--muted); font-size: 13px; line-height:1.7}
 .formStatus{color: var(--brand-dark); font-size: 14px; min-height: 20px}
+.formStatus.is-pending{color: var(--text-heading)}
+.formStatus.is-success{color: #047857}
+.formStatus.is-warning{color: #b45309}
+.formStatus.is-error{color: #b91c1c}
 
 footer{
 	border-top: 1px solid var(--stroke);

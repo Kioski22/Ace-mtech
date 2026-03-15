@@ -157,8 +157,22 @@
 					e.preventDefault();
 					var status = document.getElementById('contactStatus');
 					var submitBtn = form.querySelector('button[type="submit"]');
-					if (status) status.textContent = '';
-					if (submitBtn) submitBtn.disabled = true;
+					var label = submitBtn ? submitBtn.querySelector('span') : null;
+					var originalLabel = label ? label.textContent : '';
+
+					if (status) {
+						status.classList.remove('is-success', 'is-warning', 'is-error');
+						status.classList.add('is-pending');
+						status.textContent = 'Sending your request...';
+					}
+
+					if (submitBtn) {
+						submitBtn.disabled = true;
+					}
+
+					if (label) {
+						label.textContent = 'Submitting...';
+					}
 
 					var formData = new FormData(form);
 					fetch(form.action, {
@@ -185,18 +199,40 @@
 							});
 						})
 						.then(function (data) {
-							if (data && data.ok) {
-								if (status) status.textContent = 'Message sent. We will get back to you shortly.';
+							if (data && data.ok && data.saved_local) {
+								if (status) {
+									status.classList.remove('is-pending', 'is-success', 'is-error');
+									status.classList.add('is-warning');
+									status.textContent = (data && data.message) ? data.message : 'Request received. Email notification is temporarily delayed.';
+								}
+								form.reset();
+							} else if (data && data.ok) {
+								if (status) {
+									status.classList.remove('is-pending', 'is-warning', 'is-error');
+									status.classList.add('is-success');
+									status.textContent = (data && data.message) ? data.message : 'Request submitted. We will get back to you shortly.';
+								}
 								form.reset();
 							} else {
-								if (status) status.textContent = (data && data.message) ? data.message : 'Failed to send. Please try again.';
+								if (status) {
+									status.classList.remove('is-pending', 'is-success', 'is-warning');
+									status.classList.add('is-error');
+									status.textContent = (data && data.message) ? data.message : 'Failed to submit request. Please try again.';
+								}
 							}
 						})
 						.catch(function () {
-							if (status) status.textContent = 'Failed to send. Please try again.';
+							if (status) {
+								status.classList.remove('is-pending', 'is-success', 'is-warning');
+								status.classList.add('is-error');
+								status.textContent = 'Network error. Please try again.';
+							}
 						})
 						.finally(function () {
 							if (submitBtn) submitBtn.disabled = false;
+							if (label && originalLabel) {
+								label.textContent = originalLabel;
+							}
 						});
 				});
 			}

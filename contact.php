@@ -196,12 +196,12 @@ $siteLogoPath = get_site_logo_path();
 								<textarea id="message" name="message" placeholder="Tell us what you need: scope, timeline, location, constraints…" required></textarea>
 							</div>
 							<button class="cta" type="submit">
-								<span>Send Email</span>
+								<span>Request a Quote</span>
 								<span aria-hidden="true">→</span>
 							</button>
 							<div class="formStatus" id="contactStatus" role="status" aria-live="polite"></div>
 							<div class="formHelp">
-								This sends directly from the site using SMTP (no email app required).
+								After clicking, we will show your request status immediately.
 							</div>
 						</form>
 					</div>

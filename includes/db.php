@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 $servername = "localhost";
 $username = "icto_randy3";
-$password = "091902Rands..";
-$dbname = "Ace-mtech";
+$password = "091902Rands@";
+$dbname = "ace-mtech";
 
 $conn = new mysqli($servername, $username, $password, $dbname);
 

@@ -78,6 +78,34 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
+function persist_contact_request(array $requestPayload): bool
+{
+	$storageDir = __DIR__ . '/data';
+	if (!is_dir($storageDir) && !@mkdir($storageDir, 0775, true) && !is_dir($storageDir)) {
+		return false;
+	}
+
+	$storagePath = $storageDir . '/contact-requests.jsonl';
+	$line = json_encode($requestPayload, JSON_UNESCAPED_UNICODE);
+	if ($line === false) {
+		return false;
+	}
+
+	return @file_put_contents($storagePath, $line . PHP_EOL, FILE_APPEND | LOCK_EX) !== false;
+}
+
+$requestId = 'RQ-' . date('YmdHis') . '-' . substr(bin2hex(random_bytes(4)), 0, 8);
+$savedLocally = persist_contact_request([
+	'request_id' => $requestId,
+	'created_at' => date('c'),
+	'name' => $name,
+	'company' => $company,
+	'email' => $email,
+	'message' => $message,
+	'ip' => (string)$ip,
+	'user_agent' => (string)($_SERVER['HTTP_USER_AGENT'] ?? ''),
+]);
+
 $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
 $smtpPort = getenv('SMTP_PORT') ?: '587';
 $smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
@@ -139,10 +167,25 @@ try {
 	$mail->Body = $body;
 
 	$mail->send();
-	echo json_encode(['ok' => true]);
+	echo json_encode([
+		'ok' => true,
+		'request_id' => $requestId,
+		'message' => 'Request submitted successfully. We will contact you shortly.'
+	]);
 } catch (Exception $e) {
 	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
 	error_log('Ace-mtech mail error: ' . $rawError);
+
+	if ($savedLocally) {
+		echo json_encode([
+			'ok' => true,
+			'saved_local' => true,
+			'request_id' => $requestId,
+			'message' => 'Request received. Email notification is temporarily delayed, but your request has been recorded.'
+		]);
+		exit;
+	}
+
 	http_response_code(500);
 	if (stripos($rawError, 'authenticate') !== false) {
 		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (use a valid Gmail app password).']);
