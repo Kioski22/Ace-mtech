@@ -102,6 +102,61 @@ function persist_contact_request(array $requestPayload): bool
 	return @file_put_contents($storagePath, $line . PHP_EOL, FILE_APPEND | LOCK_EX) !== false;
 }
 
+function get_primary_smtp_host(): string
+{
+	$configuredHost = trim((string)(getenv('APP_SMTP_HOST') ?: getenv('SMTP_HOST') ?: ''));
+	if ($configuredHost === '') {
+		return 'smtp.gmail.com';
+	}
+
+	$resolved = @gethostbyname($configuredHost);
+	if ($resolved === $configuredHost) {
+		error_log('Ace-mtech mail warning: APP_SMTP_HOST not resolvable (' . $configuredHost . '), using smtp.gmail.com.');
+		return 'smtp.gmail.com';
+	}
+
+	return $configuredHost;
+}
+
+function send_via_fallback(string $fromEmail, string $fromName, string $replyEmail, string $replyName, string $recipientEmail, string $subject, string $body): bool
+{
+	try {
+		$fallbackSmtp = new PHPMailer(true);
+		$fallbackSmtp->isSMTP();
+		$fallbackSmtp->Host = 'localhost';
+		$fallbackSmtp->SMTPAuth = false;
+		$fallbackSmtp->Port = 25;
+		$fallbackSmtp->SMTPSecure = '';
+		$fallbackSmtp->SMTPAutoTLS = false;
+		$fallbackSmtp->Timeout = 5;
+		$fallbackSmtp->setFrom($fromEmail, $fromName);
+		$fallbackSmtp->addReplyTo($replyEmail, $replyName);
+		$fallbackSmtp->addAddress($recipientEmail);
+		$fallbackSmtp->Subject = $subject;
+		$fallbackSmtp->Body = $body;
+		$fallbackSmtp->send();
+		return true;
+	} catch (Exception $localhostException) {
+		error_log('Ace-mtech fallback localhost SMTP failed: ' . $localhostException->getMessage());
+	}
+
+	try {
+		$fallbackMail = new PHPMailer(true);
+		$fallbackMail->isMail();
+		$fallbackMail->setFrom($fromEmail, $fromName);
+		$fallbackMail->addReplyTo($replyEmail, $replyName);
+		$fallbackMail->addAddress($recipientEmail);
+		$fallbackMail->Subject = $subject;
+		$fallbackMail->Body = $body;
+		$fallbackMail->send();
+		return true;
+	} catch (Exception $mailException) {
+		error_log('Ace-mtech fallback mail() failed: ' . $mailException->getMessage());
+	}
+
+	return false;
+}
+
 $requestId = 'RQ-' . date('YmdHis') . '-' . substr(bin2hex(random_bytes(4)), 0, 8);
 $savedLocally = persist_contact_request([
 	'request_id' => $requestId,
@@ -136,13 +191,17 @@ if ($contactEmailMode !== 'sync') {
 	exit;
 }
 
-$smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpPort = getenv('SMTP_PORT') ?: '25';
-$smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
-$smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
-$smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
-$smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
-$smtpTo = getenv('SMTP_TO') ?: $smtpUser;
+$smtpUser = trim((string)(getenv('APP_SMTP_FROM') ?: getenv('SMTP_USER') ?: 'acemtech781@gmail.com'));
+$smtpPass = trim((string)(getenv('APP_SMTP_PASSWORD') ?: getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc'));
+$smtpHost = get_primary_smtp_host();
+$smtpPort = (int)(getenv('APP_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 587);
+$smtpTimeout = max(3, (int)(getenv('APP_SMTP_TIMEOUT') ?: '8'));
+$smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'primary-first')));
+$useLocalhostFirst = in_array($smtpMode, ['localhost-first', 'fallback-first', 'local-first'], true);
+
+$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: $smtpUser));
+$smtpFromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website'));
+$smtpTo = trim((string)(getenv('SMTP_TO') ?: $smtpUser));
 
 // Gmail app passwords are often shown with spaces in groups of 4.
 $smtpPass = str_replace(' ', '', trim($smtpPass));
@@ -180,25 +239,46 @@ $body =
 	$message . "\n";
 
 try {
-	$mail = new PHPMailer(true);
-	$mail->isSMTP();
-	$mail->Host = $smtpHost;
-	$mail->SMTPAuth = true;
-	$mail->Username = $smtpUser;
-	$mail->Password = $smtpPass;
-	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-	$mail->Port = (int)$smtpPort;
-	$mail->Timeout = 8;
-	$mail->Timelimit = 8;
+	$sent = false;
 
-	$mail->setFrom($fromEmail, $smtpFromName);
-	$mail->addAddress($smtpTo);
-	$mail->addReplyTo($email, $name);
+	if ($useLocalhostFirst) {
+		$sent = send_via_fallback($fromEmail, $smtpFromName, $email, $name, $smtpTo, $subject, $body);
+	}
 
-	$mail->Subject = $subject;
-	$mail->Body = $body;
+	if (!$sent) {
+		$mail = new PHPMailer(true);
+		$mail->isSMTP();
+		$mail->Host = $smtpHost;
+		$mail->SMTPAuth = true;
+		$mail->Username = $smtpUser;
+		$mail->Password = $smtpPass;
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+		$mail->Port = $smtpPort;
+		$mail->Timeout = $smtpTimeout;
+		$mail->Timelimit = $smtpTimeout;
+		$mail->SMTPAutoTLS = true;
+		$mail->SMTPKeepAlive = false;
+		$mail->SMTPOptions = [
+			'ssl' => [
+				'verify_peer' => false,
+				'verify_peer_name' => false,
+				'allow_self_signed' => true,
+			],
+		];
 
-	$mail->send();
+		$mail->setFrom($fromEmail, $smtpFromName);
+		$mail->addAddress($smtpTo);
+		$mail->addReplyTo($email, $name);
+		$mail->Subject = $subject;
+		$mail->Body = $body;
+		$mail->send();
+		$sent = true;
+	}
+
+	if (!$sent) {
+		throw new Exception('Email send did not complete.');
+	}
+
 	echo json_encode([
 		'ok' => true,
 		'email_sent' => true,
@@ -207,8 +287,21 @@ try {
 		'message' => 'Request saved and email sent successfully.'
 	]);
 } catch (Exception $e) {
-	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+	$rawError = isset($mail) && $mail instanceof PHPMailer && $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
 	error_log('Ace-mtech mail error: ' . $rawError);
+
+	$fallbackSent = send_via_fallback($fromEmail, $smtpFromName, $email, $name, $smtpTo, $subject, $body);
+	if ($fallbackSent) {
+		echo json_encode([
+			'ok' => true,
+			'email_sent' => true,
+			'saved_local' => true,
+			'reason' => 'smtp_primary_failed_fallback_sent',
+			'request_id' => $requestId,
+			'message' => 'Request saved and email sent via fallback mail transport.'
+		]);
+		exit;
+	}
 
 	echo json_encode([
 		'ok' => true,
