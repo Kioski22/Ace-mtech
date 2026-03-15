@@ -106,16 +106,60 @@ function get_primary_smtp_host(): string
 {
 	$configuredHost = trim((string)(getenv('APP_SMTP_HOST') ?: getenv('SMTP_HOST') ?: ''));
 	if ($configuredHost === '') {
-		return 'smtp.gmail.com';
+		return 'smtpout.secureserver.net';
 	}
 
 	$resolved = @gethostbyname($configuredHost);
 	if ($resolved === $configuredHost) {
-		error_log('Ace-mtech mail warning: APP_SMTP_HOST not resolvable (' . $configuredHost . '), using smtp.gmail.com.');
-		return 'smtp.gmail.com';
+		error_log('Ace-mtech mail warning: SMTP host may not be resolvable (' . $configuredHost . ').');
 	}
 
 	return $configuredHost;
+}
+
+function env_bool(string $name, bool $default): bool
+{
+	$value = getenv($name);
+	if ($value === false) {
+		return $default;
+	}
+
+	$normalized = strtolower(trim((string)$value));
+	if (in_array($normalized, ['1', 'true', 'yes', 'on'], true)) {
+		return true;
+	}
+	if (in_array($normalized, ['0', 'false', 'no', 'off'], true)) {
+		return false;
+	}
+
+	return $default;
+}
+
+function smtp_encryption_mode(int $smtpPort): string
+{
+	$raw = strtolower(trim((string)(getenv('APP_SMTP_ENCRYPTION') ?: getenv('SMTP_ENCRYPTION') ?: 'ssl')));
+	if (in_array($raw, ['tls', 'starttls'], true)) {
+		return PHPMailer::ENCRYPTION_STARTTLS;
+	}
+	if (in_array($raw, ['ssl', 'smtps'], true)) {
+		return PHPMailer::ENCRYPTION_SMTPS;
+	}
+	if (in_array($raw, ['none', 'off', 'plain'], true)) {
+		return '';
+	}
+
+	return $smtpPort === 465 ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
+}
+
+function normalize_error_message(string $rawError): string
+{
+	$singleLine = preg_replace('/\s+/', ' ', trim($rawError));
+	$singleLine = is_string($singleLine) ? $singleLine : 'Unknown SMTP error.';
+	if (strlen($singleLine) > 280) {
+		return substr($singleLine, 0, 280) . '...';
+	}
+
+	return $singleLine;
 }
 
 function send_via_fallback(string $fromEmail, string $fromName, string $replyEmail, string $replyName, string $recipientEmail, string $subject, string $body): bool
@@ -191,24 +235,45 @@ if ($contactEmailMode !== 'sync') {
 	exit;
 }
 
-$smtpUser = trim((string)(getenv('APP_SMTP_FROM') ?: getenv('SMTP_USER') ?: 'acemtech781@gmail.com'));
-$smtpPass = trim((string)(getenv('APP_SMTP_PASSWORD') ?: getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc'));
+$smtpUser = trim((string)(getenv('APP_SMTP_FROM') ?: getenv('SMTP_USER') ?: 'your-full-email@yourdomain.com'));
+$smtpPass = trim((string)(getenv('APP_SMTP_PASSWORD') ?: getenv('SMTP_PASS') ?: 'your-mailbox-password'));
 $smtpHost = get_primary_smtp_host();
-$smtpPort = (int)(getenv('APP_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 587);
+$smtpPort = (int)(getenv('APP_SMTP_PORT') ?: getenv('SMTP_PORT') ?: 465);
 $smtpTimeout = max(3, (int)(getenv('APP_SMTP_TIMEOUT') ?: '8'));
+$smtpAuth = env_bool('APP_SMTP_AUTH', true);
+$smtpSecure = smtp_encryption_mode($smtpPort);
 $smtpMode = strtolower(trim((string)(getenv('APP_SMTP_MODE') ?: 'primary-first')));
 $useLocalhostFirst = in_array($smtpMode, ['localhost-first', 'fallback-first', 'local-first'], true);
 
-$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: $smtpUser));
+$smtpFrom = trim((string)(getenv('SMTP_FROM') ?: 'acemtech781@gmail.com'));
 $smtpFromName = trim((string)(getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website'));
-$smtpTo = trim((string)(getenv('SMTP_TO') ?: $smtpUser));
+$smtpTo = trim((string)(getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com'));
 
 // Gmail app passwords are often shown with spaces in groups of 4.
 $smtpPass = str_replace(' ', '', trim($smtpPass));
 
-if ($smtpHost === '' || $smtpUser === '' || $smtpPass === '' || $smtpFrom === '' || $smtpTo === '') {
+if ($smtpHost === '' || $smtpFrom === '' || $smtpTo === '') {
 	http_response_code(500);
 	echo json_encode(['ok' => false, 'message' => 'Server email is not configured.']);
+	exit;
+}
+
+if (in_array($smtpUser, ['acemtech781@gmail.com'], true)
+	|| in_array($smtpFrom, ['acemtech781@gmail.com'], true)
+	|| in_array($smtpTo, ['acemtech781@gmail.com'], true)
+	|| $smtpPass === 'your-mailbox-password') {
+	http_response_code(500);
+	echo json_encode([
+		'ok' => false,
+		'reason' => 'smtp_placeholder_config',
+		'message' => 'SMTP is using placeholder values. Set APP_SMTP_FROM, APP_SMTP_PASSWORD, SMTP_FROM, and SMTP_TO to real GoDaddy mailbox addresses.'
+	]);
+	exit;
+}
+
+if ($smtpAuth && ($smtpUser === '' || $smtpPass === '')) {
+	http_response_code(500);
+	echo json_encode(['ok' => false, 'message' => 'SMTP authentication is enabled but credentials are missing.']);
 	exit;
 }
 
@@ -249,10 +314,10 @@ try {
 		$mail = new PHPMailer(true);
 		$mail->isSMTP();
 		$mail->Host = $smtpHost;
-		$mail->SMTPAuth = true;
+		$mail->SMTPAuth = $smtpAuth;
 		$mail->Username = $smtpUser;
 		$mail->Password = $smtpPass;
-		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+		$mail->SMTPSecure = $smtpSecure;
 		$mail->Port = $smtpPort;
 		$mail->Timeout = $smtpTimeout;
 		$mail->Timelimit = $smtpTimeout;
@@ -283,11 +348,13 @@ try {
 		'ok' => true,
 		'email_sent' => true,
 		'saved_local' => true,
+		'reason' => 'smtp_sent',
 		'request_id' => $requestId,
 		'message' => 'Request saved and email sent successfully.'
 	]);
 } catch (Exception $e) {
 	$rawError = isset($mail) && $mail instanceof PHPMailer && $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+	$normalizedError = normalize_error_message($rawError);
 	error_log('Ace-mtech mail error: ' . $rawError);
 
 	$fallbackSent = send_via_fallback($fromEmail, $smtpFromName, $email, $name, $smtpTo, $subject, $body);
@@ -298,17 +365,18 @@ try {
 			'saved_local' => true,
 			'reason' => 'smtp_primary_failed_fallback_sent',
 			'request_id' => $requestId,
-			'message' => 'Request saved and email sent via fallback mail transport.'
+			'message' => 'Primary SMTP failed (' . $normalizedError . '). Request saved and sent via fallback transport.'
 		]);
 		exit;
 	}
 
 	echo json_encode([
-		'ok' => true,
+		'ok' => false,
 		'email_sent' => false,
 		'saved_local' => true,
 		'reason' => 'smtp_failed',
+		'smtp_error' => $normalizedError,
 		'request_id' => $requestId,
-		'message' => 'Request saved, but email was not sent due to SMTP failure.'
+		'message' => 'Request saved, but email was not sent. SMTP error: ' . $normalizedError
 	]);
 }
