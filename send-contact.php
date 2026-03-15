@@ -107,7 +107,7 @@ $savedLocally = persist_contact_request([
 ]);
 
 $smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpPort = getenv('SMTP_PORT') ?: '587';
+$smtpPort = getenv('SMTP_PORT') ?: '25';
 $smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
 $smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
 $smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
