@@ -183,7 +183,11 @@ $siteLogoPath = get_site_logo_path();
 			cursor:pointer;
 			transition: all 0.3s ease;
 			flex-shrink: 0;
+<<<<<<< HEAD
 			font-size:18px;
+=======
+			font-size:16px;
+>>>>>>> 069144a7e55ed76e0d439734b1c81146a67b088c
 		}
 		.menuBtn:hover{
 			background: var(--bg-soft);
@@ -715,6 +719,12 @@ $siteLogoPath = get_site_logo_path();
 			.stats{grid-template-columns: repeat(3, minmax(0, 1fr))}
 			.logos{grid-template-columns: repeat(3, minmax(0, 1fr))}
 			.hero{padding: 56px 0 24px}
+		}
+		@media (max-width: 640px){
+			.stats{grid-template-columns: 1fr; gap: 12px}
+			.stat{padding: 16px}
+			.stat b{font-size: 16px}
+			.stat span{font-size: 12px}
 		}
 		@media (max-width: 760px){
 			.nav{overflow:hidden}

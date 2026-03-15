@@ -142,7 +142,11 @@ header{
 	border-radius:10px;
 	cursor:pointer;
 	transition: all 0.3s ease;
+<<<<<<< HEAD
 	font-size: 18px;
+=======
+	font-size: 16px;
+>>>>>>> 069144a7e55ed76e0d439734b1c81146a67b088c
 	flex-shrink: 0;
 }
 .menuBtn:hover{
@@ -315,6 +319,7 @@ section{padding: 48px 0}
 	padding: 36px;
 	box-shadow: var(--shadow-sm);
 	transition: all 0.3s ease;
+	margin-top: 12px;
 }
 
 .hero{padding: 72px 0 32px}
@@ -938,7 +943,7 @@ footer{
 		position:absolute;
 		left: var(--pad);
 		right: var(--pad);
-		top: 68px;
+		top: 76px;
 		padding: 12px;
 		border-radius: 14px;
 		border: 1px solid var(--stroke);
@@ -989,6 +994,7 @@ footer{
 	.hero{padding: 40px 0 20px}
 	h1{font-size: clamp(32px, 8vw, 48px)}
 }
+
 
 @media (prefers-reduced-motion: reduce){
 	html{scroll-behavior:auto}
