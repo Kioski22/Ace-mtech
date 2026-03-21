@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	$pass = $_POST["password"] ?? "";
 
 	if (attempt_admin_login($user, $pass)) {
-		header("Location: /Ace-mtech/admin2/index.php");
+		header("Location: /admin2/index.php");
 		exit;
 	}
 
@@ -27,13 +27,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <html lang="en">
 <head>
 	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" /><link rel="icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<link rel="icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" type="image/svg+xml" />
+	<link rel="apple-touch-icon" href="../<?php echo htmlspecialchars(get_site_logo_path()); ?>" />
 	<title>Admin Login</title>
 	<link rel="stylesheet" href="../styles.css" />
 	<style>
 		*{margin:0;padding:0;box-sizing:border-box}
-		body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+		body	"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#1e293b 0%,#0f172a 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
 		.loginShell{max-width:520px;width:100%}
 		.loginCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;padding:40px;box-shadow:0 20px 60px rgba(0,0,0,0.3)}
 		.loginCard h1{font-size:32px;font-weight:700;color:#1e293b;margin-bottom:8px;letter-spacing:-0.5px}
