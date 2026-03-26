@@ -84,7 +84,7 @@ $smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
 $smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
 $smtpFrom = getenv('SMTP_FROM') ?: 'no-reply@ace-mtech.ph';
 $smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
-$smtpTo = getenv('SMTP_TO') ?: 'info@ace-mtech.ph';
+$smtpTo = getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com';
 $smtpSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'ssl')));
 $smtpAuth = strtolower(trim((string)(getenv('SMTP_AUTH') ?: 'true')));
 
