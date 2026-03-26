@@ -78,7 +78,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
-$smtpHost = getenv('SMTP_HOST') ?: 'ace-mtech.ph';
+$smtpHost = getenv('SMTP_HOST') ?: '68.178.224.165';
 $smtpPort = getenv('SMTP_PORT') ?: '465';
 $smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
 $smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
