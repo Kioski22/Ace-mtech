@@ -1081,20 +1081,20 @@ function ceo_settings_defaults(): array
 		"ceo_stat_3_label" => "Team Members Mentored",
 		"ceo_stat_4_value" => "Nationwide",
 		"ceo_stat_4_label" => "Project Coverage",
-		"ceo_achievements_heading" => "Life Achievements",
-		"ceo_achievements_description" => "A timeline of key milestones that shaped his leadership journey.",
-		"ceo_achievement_1_year" => "2003",
-		"ceo_achievement_1_title" => "Licensed Engineer & Early Career",
-		"ceo_achievement_1_description" => "Earned professional engineering credentials and led multidisciplinary construction support teams on institutional and commercial facilities.",
-		"ceo_achievement_2_year" => "2010",
-		"ceo_achievement_2_title" => "Founded Ace-mtech Group",
-		"ceo_achievement_2_description" => "Established Ace-mtech with a clear vision: integrated architecture, civil, electrical, and mechanical engineering under one trusted brand.",
-		"ceo_achievement_3_year" => "2016",
-		"ceo_achievement_3_title" => "Major Infrastructure Milestone",
-		"ceo_achievement_3_description" => "Successfully delivered large-scale industrial and commercial systems, including HVAC, fire protection, and automation packages.",
-		"ceo_achievement_4_year" => "2024",
-		"ceo_achievement_4_title" => "Leadership & Community Impact",
-		"ceo_achievement_4_description" => "Expanded operations while championing technical mentorship programs, safety-first culture, and local workforce development initiatives.",
+		"ceo_achievements_heading" => "",
+		"ceo_achievements_description" => "",
+		"ceo_achievement_1_year" => "",
+		"ceo_achievement_1_title" => "",
+		"ceo_achievement_1_description" => "",
+		"ceo_achievement_2_year" => "",
+		"ceo_achievement_2_title" => "",
+		"ceo_achievement_2_description" => "",
+		"ceo_achievement_3_year" => "",
+		"ceo_achievement_3_title" => "",
+		"ceo_achievement_3_description" => "",
+		"ceo_achievement_4_year" => "",
+		"ceo_achievement_4_title" => "",
+		"ceo_achievement_4_description" => "",
 	];
 }
 
@@ -1119,13 +1119,18 @@ function get_ceo_settings(): array
 
 	$settings["achievements"] = [];
 	for ($i = 1; $i <= 4; $i++) {
-		$year = get_site_setting("ceo_achievement_{$i}_year", "");
-		$year = is_string($year) ? trim($year) : "";
+		$year = trim((string)$settings["ceo_achievement_{$i}_year"]);
+		$title = trim((string)$settings["ceo_achievement_{$i}_title"]);
+		$description = trim((string)$settings["ceo_achievement_{$i}_description"]);
+
+		if ($year === "" && $title === "" && $description === "") {
+			continue;
+		}
 
 		$settings["achievements"][] = [
 			"year" => $year,
-			"title" => (string)$settings["ceo_achievement_{$i}_title"],
-			"description" => (string)$settings["ceo_achievement_{$i}_description"],
+			"title" => $title,
+			"description" => $description,
 		];
 	}
 

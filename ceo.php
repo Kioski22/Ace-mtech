@@ -157,25 +157,44 @@ $ceoPortraitPath = get_ceo_portrait_path();
 				</div>
 			</section>
 
-			<section aria-label="Life achievements">
-				<div class="sectionHead">
-					<div>
-						<h2><?php echo htmlspecialchars((string)$ceoSettings["ceo_achievements_heading"]); ?></h2>
-						<p class="sectionDesc"><?php echo htmlspecialchars((string)$ceoSettings["ceo_achievements_description"]); ?></p>
-					</div>
-				</div>
-				<div class="achievementGrid">
-					<?php foreach (($ceoSettings["achievements"] ?? []) as $achievement): ?>
-						<article class="achievementCard">
-							<?php if (trim((string)($achievement["year"] ?? "")) !== ""): ?>
-								<div class="achievementYear"><?php echo htmlspecialchars((string)$achievement["year"]); ?></div>
-							<?php endif; ?>
-							<h3><?php echo htmlspecialchars((string)($achievement["title"] ?? "")); ?></h3>
-							<p><?php echo htmlspecialchars((string)($achievement["description"] ?? "")); ?></p>
-						</article>
-					<?php endforeach; ?>
-				</div>
-			</section>
+			<?php
+			$achievementHeading = trim((string)($ceoSettings["ceo_achievements_heading"] ?? ""));
+			$achievementDescription = trim((string)($ceoSettings["ceo_achievements_description"] ?? ""));
+			$achievements = $ceoSettings["achievements"] ?? [];
+			?>
+			<?php if ($achievementHeading !== "" || $achievementDescription !== "" || $achievements !== []): ?>
+				<section aria-label="Life achievements">
+					<?php if ($achievementHeading !== "" || $achievementDescription !== ""): ?>
+						<div class="sectionHead">
+							<div>
+								<?php if ($achievementHeading !== ""): ?>
+									<h2><?php echo htmlspecialchars($achievementHeading); ?></h2>
+								<?php endif; ?>
+								<?php if ($achievementDescription !== ""): ?>
+									<p class="sectionDesc"><?php echo htmlspecialchars($achievementDescription); ?></p>
+								<?php endif; ?>
+							</div>
+						</div>
+					<?php endif; ?>
+					<?php if ($achievements !== []): ?>
+						<div class="achievementGrid">
+							<?php foreach ($achievements as $achievement): ?>
+								<article class="achievementCard">
+									<?php if (trim((string)($achievement["year"] ?? "")) !== ""): ?>
+										<div class="achievementYear"><?php echo htmlspecialchars((string)$achievement["year"]); ?></div>
+									<?php endif; ?>
+									<?php if (trim((string)($achievement["title"] ?? "")) !== ""): ?>
+										<h3><?php echo htmlspecialchars((string)$achievement["title"]); ?></h3>
+									<?php endif; ?>
+									<?php if (trim((string)($achievement["description"] ?? "")) !== ""): ?>
+										<p><?php echo htmlspecialchars((string)$achievement["description"]); ?></p>
+									<?php endif; ?>
+								</article>
+							<?php endforeach; ?>
+						</div>
+					<?php endif; ?>
+				</section>
+			<?php endif; ?>
 		</div>
 	</main>
 

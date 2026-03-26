@@ -78,20 +78,27 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
-$smtpHost = getenv('SMTP_HOST') ?: 'smtp.gmail.com';
-$smtpPort = getenv('SMTP_PORT') ?: '587';
-$smtpUser = getenv('SMTP_USER') ?: 'acemtech781@gmail.com';
-$smtpPass = getenv('SMTP_PASS') ?: 'itrd piwc dvwb tiwc';
-$smtpFrom = getenv('SMTP_FROM') ?: 'acemtech781@gmail.com';
+$smtpHost = getenv('SMTP_HOST') ?: 'ace-mtech.ph';
+$smtpPort = getenv('SMTP_PORT') ?: '465';
+$smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
+$smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
+$smtpFrom = getenv('SMTP_FROM') ?: 'no-reply@ace-mtech.ph';
 $smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
-$smtpTo = getenv('SMTP_TO') ?: $smtpUser;
+$smtpTo = getenv('SMTP_TO') ?: 'info@ace-mtech.ph';
+$smtpSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'ssl')));
+$smtpAuth = strtolower(trim((string)(getenv('SMTP_AUTH') ?: 'true')));
 
-// Gmail app passwords are often shown with spaces in groups of 4.
-$smtpPass = str_replace(' ', '', trim($smtpPass));
+$smtpAuthEnabled = !in_array($smtpAuth, ['0', 'false', 'no', 'off'], true);
 
-if ($smtpHost === '' || $smtpUser === '' || $smtpPass === '' || $smtpFrom === '' || $smtpTo === '') {
+if ($smtpHost === '' || $smtpFrom === '' || $smtpTo === '') {
 	http_response_code(500);
 	echo json_encode(['ok' => false, 'message' => 'Server email is not configured.']);
+	exit;
+}
+
+if ($smtpAuthEnabled && ($smtpUser === '' || $smtpPass === '')) {
+	http_response_code(500);
+	echo json_encode(['ok' => false, 'message' => 'SMTP authentication is enabled but SMTP_USER or SMTP_PASS is missing.']);
 	exit;
 }
 
@@ -125,10 +132,16 @@ try {
 	$mail = new PHPMailer(true);
 	$mail->isSMTP();
 	$mail->Host = $smtpHost;
-	$mail->SMTPAuth = true;
-	$mail->Username = $smtpUser;
-	$mail->Password = $smtpPass;
-	$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+	$mail->SMTPAuth = $smtpAuthEnabled;
+	if ($smtpAuthEnabled) {
+		$mail->Username = $smtpUser;
+		$mail->Password = $smtpPass;
+	}
+	if ($smtpSecure === 'ssl' || $smtpSecure === 'smtps' || $smtpPort === '465') {
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+	} elseif ($smtpSecure === 'tls' || $smtpSecure === 'starttls' || $smtpPort === '587') {
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+	}
 	$mail->Port = (int)$smtpPort;
 
 	$mail->setFrom($fromEmail, $smtpFromName);
@@ -145,7 +158,7 @@ try {
 	error_log('Ace-mtech mail error: ' . $rawError);
 	http_response_code(500);
 	if (stripos($rawError, 'authenticate') !== false) {
-		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check SMTP_USER and SMTP_PASS (use a valid Gmail app password).']);
+		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check the cPanel mailbox username and password.']);
 		exit;
 	}
 	echo json_encode(['ok' => false, 'message' => 'Failed to send. Please try again later.']);
