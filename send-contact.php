@@ -81,7 +81,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $smtpHost = getenv('SMTP_HOST') ?: '68.178.224.165';
 $smtpPort = getenv('SMTP_PORT') ?: '465';
 $smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
-$smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
+$smtpPass = trim((string)(getenv('SMTP_PASS') ?: 'Ace-mtech123@@'));
 $smtpFrom = getenv('SMTP_FROM') ?: 'no-reply@ace-mtech.ph';
 $smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
 $smtpTo = getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com';
