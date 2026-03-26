@@ -78,15 +78,15 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 	exit;
 }
 
-$smtpHost = getenv('SMTP_HOST') ?: '68.178.224.165';
-$smtpPort = getenv('SMTP_PORT') ?: '465';
+$smtpHost = getenv('SMTP_HOST') ?: 'localhost';
+$smtpPort = getenv('SMTP_PORT') ?: '25';
 $smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
-$smtpPass = trim((string)(getenv('SMTP_PASS') ?: 'Ace-mtech123@@'));
+$smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
 $smtpFrom = getenv('SMTP_FROM') ?: 'no-reply@ace-mtech.ph';
 $smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
 $smtpTo = getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com';
-$smtpSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'ssl')));
-$smtpAuth = strtolower(trim((string)(getenv('SMTP_AUTH') ?: 'true')));
+$smtpSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'none')));
+$smtpAuth = strtolower(trim((string)(getenv('SMTP_AUTH') ?: 'false')));
 
 $smtpAuthEnabled = !in_array($smtpAuth, ['0', 'false', 'no', 'off'], true);
 
@@ -141,6 +141,8 @@ try {
 		$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
 	} elseif ($smtpSecure === 'tls' || $smtpSecure === 'starttls' || $smtpPort === '587') {
 		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+	} else {
+		$mail->SMTPSecure = false;
 	}
 	$mail->Port = (int)$smtpPort;
 
