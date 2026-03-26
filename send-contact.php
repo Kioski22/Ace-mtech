@@ -2,166 +2,256 @@
 
 declare(strict_types=1);
 
-use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\PHPMailer;
 
 header('Content-Type: application/json; charset=utf-8');
-
-// Prevent stray warnings/notices from corrupting JSON output.
 ini_set('display_errors', '0');
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-	http_response_code(405);
-	echo json_encode(['ok' => false, 'message' => 'Method not allowed.']);
+function respond_json(int $statusCode, array $payload): void
+{
+	http_response_code($statusCode);
+	echo json_encode($payload);
 	exit;
 }
 
-session_start();
+function post_string(string $key): string
+{
+	return trim((string) ($_POST[$key] ?? ''));
+}
+
+function env_value(string $key, string $default = ''): string
+{
+	$value = getenv($key);
+	if ($value === false) {
+		return $default;
+	}
+
+	return trim((string) $value);
+}
+
+function load_env_file(string $filePath): void
+{
+	if (!is_file($filePath) || !is_readable($filePath)) {
+		return;
+	}
+
+	$lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+	if (!is_array($lines)) {
+		return;
+	}
+
+	foreach ($lines as $line) {
+		$trimmed = trim($line);
+		if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+			continue;
+		}
+
+		$separatorPos = strpos($trimmed, '=');
+		if ($separatorPos === false) {
+			continue;
+		}
+
+		$key = trim(substr($trimmed, 0, $separatorPos));
+		if ($key === '' || getenv($key) !== false) {
+			continue;
+		}
+
+		$value = trim(substr($trimmed, $separatorPos + 1));
+		if (
+			strlen($value) >= 2 &&
+			(($value[0] === '"' && $value[strlen($value) - 1] === '"') || ($value[0] === '\'' && $value[strlen($value) - 1] === '\''))
+		) {
+			$value = substr($value, 1, -1);
+		}
+
+		putenv($key . '=' . $value);
+		$_ENV[$key] = $value;
+		$_SERVER[$key] = $value;
+	}
+}
+
+function env_flag(string $key, bool $default): bool
+{
+	$value = strtolower(env_value($key, $default ? 'true' : 'false'));
+	return !in_array($value, ['0', 'false', 'no', 'off'], true);
+}
+
+function resolve_sender(string $rawFrom, string $defaultName): array
+{
+	$fromEmail = $rawFrom;
+	$fromName = $defaultName;
+
+	if (preg_match('/^\s*([^<]+)\s*<\s*([^>]+)\s*>\s*$/', $rawFrom, $matches)) {
+		$fromName = trim($matches[1]);
+		$fromEmail = trim($matches[2]);
+	}
+
+	return [$fromEmail, $fromName];
+}
+
+function load_rate_window(string $rateFile, int $windowSeconds, int $now): array
+{
+	$recent = [];
+	if (!is_file($rateFile)) {
+		return $recent;
+	}
+
+	$raw = file_get_contents($rateFile);
+	$decoded = json_decode((string) $raw, true);
+	if (!is_array($decoded)) {
+		return $recent;
+	}
+
+	foreach ($decoded as $timestamp) {
+		if (is_int($timestamp) && ($now - $timestamp) < $windowSeconds) {
+			$recent[] = $timestamp;
+		}
+	}
+
+	return $recent;
+}
+
+function apply_smtp_transport(PHPMailer $mail, array $config): void
+{
+	$mail->isSMTP();
+	$mail->Host = $config['host'];
+	$mail->Port = $config['port'];
+	$mail->Timeout = $config['timeout'];
+	$mail->CharSet = 'UTF-8';
+	$mail->SMTPAuth = $config['auth'];
+
+	if ($config['auth']) {
+		$mail->Username = $config['user'];
+		$mail->Password = $config['pass'];
+	}
+
+	if ($config['secure'] === 'ssl' || $config['secure'] === 'smtps') {
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+		$mail->SMTPAutoTLS = false;
+		return;
+	}
+
+	if ($config['secure'] === 'tls' || $config['secure'] === 'starttls') {
+		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+		$mail->SMTPAutoTLS = true;
+		return;
+	}
+
+	$mail->SMTPSecure = false;
+	$mail->SMTPAutoTLS = false;
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+	respond_json(405, ['ok' => false, 'message' => 'Method not allowed.']);
+}
 
 $autoloadPath = __DIR__ . '/vendor/autoload.php';
 if (!is_file($autoloadPath)) {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'Server dependency missing. Run composer install.']);
-	exit;
+	respond_json(500, ['ok' => false, 'message' => 'Server dependency missing. Run composer install.']);
 }
 
 require $autoloadPath;
 
-$honeypot = trim((string)($_POST['website'] ?? ''));
+load_env_file(__DIR__ . '/.env');
+
+$honeypot = post_string('website');
 if ($honeypot !== '') {
-	echo json_encode(['ok' => true]);
-	exit;
+	respond_json(200, ['ok' => true]);
 }
 
-$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 $limitWindowSeconds = 600;
 $limitMax = 3;
-$rateFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'acemtech_rate_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $ip) . '.json';
-
+$ipAddress = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+$rateFile = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . 'acemtech_rate_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $ipAddress) . '.json';
 $now = time();
-$recent = [];
-if (is_file($rateFile)) {
-	$raw = file_get_contents($rateFile);
-	$decoded = json_decode($raw, true);
-	if (is_array($decoded)) {
-		foreach ($decoded as $ts) {
-			if (is_int($ts) && ($now - $ts) < $limitWindowSeconds) {
-				$recent[] = $ts;
-			}
-		}
-	}
+$recentAttempts = load_rate_window($rateFile, $limitWindowSeconds, $now);
+
+if (count($recentAttempts) >= $limitMax) {
+	respond_json(429, ['ok' => false, 'message' => 'Too many requests. Please try again shortly.']);
 }
 
-if (count($recent) >= $limitMax) {
-	http_response_code(429);
-	echo json_encode(['ok' => false, 'message' => 'Too many requests. Please try again shortly.']);
-	exit;
-}
+$recentAttempts[] = $now;
+@file_put_contents($rateFile, json_encode($recentAttempts), LOCK_EX);
 
-$recent[] = $now;
-@file_put_contents($rateFile, json_encode($recent), LOCK_EX);
-
-$name = trim((string)($_POST['name'] ?? ''));
-$company = trim((string)($_POST['company'] ?? ''));
-$email = trim((string)($_POST['email'] ?? ''));
-$message = trim((string)($_POST['message'] ?? ''));
+$name = post_string('name');
+$company = post_string('company');
+$email = post_string('email');
+$message = post_string('message');
 
 if ($name === '' || $email === '' || $message === '') {
-	http_response_code(422);
-	echo json_encode(['ok' => false, 'message' => 'Please fill out all required fields.']);
-	exit;
+	respond_json(422, ['ok' => false, 'message' => 'Please fill out all required fields.']);
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-	http_response_code(422);
-	echo json_encode(['ok' => false, 'message' => 'Please enter a valid email address.']);
-	exit;
+	respond_json(422, ['ok' => false, 'message' => 'Please enter a valid email address.']);
 }
 
-$smtpHost = getenv('SMTP_HOST') ?: 'localhost';
-$smtpPort = getenv('SMTP_PORT') ?: '25';
-$smtpUser = getenv('SMTP_USER') ?: 'no-reply@ace-mtech.ph';
-$smtpPass = trim((string)(getenv('SMTP_PASS') ?: ''));
-$smtpFrom = getenv('SMTP_FROM') ?: 'no-reply@ace-mtech.ph';
-$smtpFromName = getenv('SMTP_FROM_NAME') ?: 'Ace-mtech Website';
-$smtpTo = getenv('SMTP_TO') ?: 'floresrandy.m@gmail.com';
-$smtpSecure = strtolower(trim((string)(getenv('SMTP_SECURE') ?: 'none')));
-$smtpAuth = strtolower(trim((string)(getenv('SMTP_AUTH') ?: 'false')));
+$smtpConfig = [
+	'host' => env_value('SMTP_HOST', 'localhost'),
+	'port' => (int) env_value('SMTP_PORT', '25'),
+	'user' => env_value('SMTP_USER', 'no-reply@ace-mtech.ph'),
+	'pass' => env_value('SMTP_PASS', ''),
+	'from' => env_value('SMTP_FROM', 'no-reply@ace-mtech.ph'),
+	'from_name' => env_value('SMTP_FROM_NAME', 'Ace-mtech Website'),
+	'to' => env_value('SMTP_TO', 'floresrandy.m@gmail.com'),
+	'secure' => strtolower(env_value('SMTP_SECURE', 'none')),
+	'auth' => env_flag('SMTP_AUTH', false),
+	'timeout' => max(5, (int) env_value('SMTP_TIMEOUT', '15')),
+];
 
-$smtpAuthEnabled = !in_array($smtpAuth, ['0', 'false', 'no', 'off'], true);
-
-if ($smtpHost === '' || $smtpFrom === '' || $smtpTo === '') {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'Server email is not configured.']);
-	exit;
+if ($smtpConfig['host'] === '' || $smtpConfig['from'] === '' || $smtpConfig['to'] === '') {
+	respond_json(500, ['ok' => false, 'message' => 'Server email is not configured.']);
 }
 
-if ($smtpAuthEnabled && ($smtpUser === '' || $smtpPass === '')) {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'SMTP authentication is enabled but SMTP_USER or SMTP_PASS is missing.']);
-	exit;
+if ($smtpConfig['auth'] && ($smtpConfig['user'] === '' || $smtpConfig['pass'] === '')) {
+	respond_json(500, ['ok' => false, 'message' => 'SMTP authentication is enabled but SMTP_USER or SMTP_PASS is missing.']);
 }
 
-if (!filter_var($smtpTo, FILTER_VALIDATE_EMAIL)) {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'Server recipient email is invalid.']);
-	exit;
+if (!filter_var($smtpConfig['to'], FILTER_VALIDATE_EMAIL)) {
+	respond_json(500, ['ok' => false, 'message' => 'Server recipient email is invalid.']);
 }
 
-// Allow SMTP_FROM to be either "email@domain" or "Name <email@domain>".
-$fromEmail = $smtpFrom;
-if (preg_match('/^\s*([^<]+)\s*<\s*([^>]+)\s*>\s*$/', $smtpFrom, $matches)) {
-	$smtpFromName = trim($matches[1]);
-	$fromEmail = trim($matches[2]);
-}
-
+[$fromEmail, $fromName] = resolve_sender($smtpConfig['from'], $smtpConfig['from_name']);
 if (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
-	http_response_code(500);
-	echo json_encode(['ok' => false, 'message' => 'Server sender email is invalid.']);
-	exit;
+	respond_json(500, ['ok' => false, 'message' => 'Server sender email is invalid.']);
 }
 
 $subject = 'Project inquiry' . ($company !== '' ? ' - ' . $company : '');
 $body =
 	"Name: {$name}\n" .
-	"Company: " . ($company !== '' ? $company : '-') . "\n" .
+	'Company: ' . ($company !== '' ? $company : '-') . "\n" .
 	"Email: {$email}\n\n" .
 	$message . "\n";
 
 try {
+	$mail = null;
 	$mail = new PHPMailer(true);
-	$mail->isSMTP();
-	$mail->Host = $smtpHost;
-	$mail->SMTPAuth = $smtpAuthEnabled;
-	if ($smtpAuthEnabled) {
-		$mail->Username = $smtpUser;
-		$mail->Password = $smtpPass;
-	}
-	if ($smtpSecure === 'ssl' || $smtpSecure === 'smtps' || $smtpPort === '465') {
-		$mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-	} elseif ($smtpSecure === 'tls' || $smtpSecure === 'starttls' || $smtpPort === '587') {
-		$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-	} else {
-		$mail->SMTPSecure = false;
-	}
-	$mail->Port = (int)$smtpPort;
-
-	$mail->setFrom($fromEmail, $smtpFromName);
-	$mail->addAddress($smtpTo);
+	apply_smtp_transport($mail, $smtpConfig);
+	$mail->setFrom($fromEmail, $fromName);
+	$mail->addAddress($smtpConfig['to']);
 	$mail->addReplyTo($email, $name);
-
 	$mail->Subject = $subject;
 	$mail->Body = $body;
-
 	$mail->send();
-	echo json_encode(['ok' => true]);
-} catch (Exception $e) {
-	$rawError = $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
-	error_log('Ace-mtech mail error: ' . $rawError);
-	http_response_code(500);
+
+	respond_json(200, ['ok' => true, 'message' => 'Request submitted. We will get back to you shortly.']);
+} catch (Exception $exception) {
+	$rawError = ($mail instanceof PHPMailer && $mail->ErrorInfo !== '') ? $mail->ErrorInfo : $exception->getMessage();
+	$transportSummary = sprintf(
+		'host=%s port=%d secure=%s auth=%s from=%s to=%s',
+		$smtpConfig['host'],
+		$smtpConfig['port'],
+		$smtpConfig['secure'],
+		$smtpConfig['auth'] ? 'true' : 'false',
+		$fromEmail,
+		$smtpConfig['to']
+	);
+	error_log('Ace-mtech mail error: ' . $rawError . ' | ' . $transportSummary);
+
 	if (stripos($rawError, 'authenticate') !== false) {
-		echo json_encode(['ok' => false, 'message' => 'SMTP authentication failed. Check the cPanel mailbox username and password.']);
-		exit;
+		respond_json(500, ['ok' => false, 'message' => 'SMTP authentication failed. Check the cPanel mailbox username and password.']);
 	}
-	echo json_encode(['ok' => false, 'message' => 'Failed to send. Please try again later.']);
+
+	respond_json(500, ['ok' => false, 'message' => 'Failed to send. Please try again later.']);
 }
