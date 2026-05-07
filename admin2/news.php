@@ -105,6 +105,10 @@ $newsPosts = get_news_posts(true);
 		.adminPageHeader{margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e2e8f0}
 		.adminPageHeader h1{margin:0 0 10px;font-size:36px;font-weight:800;color:#0f172a;letter-spacing:-1px}
 		.adminPageHeader p{margin:0;font-size:16px;color:#64748b;line-height:1.7}
+		.frontendIndicator{margin-top:14px;padding:12px 14px;background:#ecfdf5;border:1.5px solid #86efac;border-radius:10px;color:#14532d;font-size:13px;line-height:1.6}
+		.frontendIndicator strong{display:block;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;color:#166534;margin-bottom:4px}
+		.frontendIndicator a{color:#166534;text-decoration:underline;font-weight:700}
+		.frontendIndicator a:hover{color:#14532d}
 		.adminCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:28px}
 		.adminCard h3{margin:0 0 20px;font-size:18px;font-weight:700;color:#0f172a}
 		.adminCard p{margin:0 0 16px;font-size:14px;color:#64748b}
@@ -172,6 +176,10 @@ $newsPosts = get_news_posts(true);
 			<div class="adminPageHeader">
 				<h1>News & Achievements</h1>
 				<p>Create Facebook-style updates for project wins, milestones, and company announcements.</p>
+				<div class="frontendIndicator">
+					<strong>Where this appears on your website</strong>
+					Posts from this page appear in your website news section.
+				</div>
 			</div>
 
 		<?php if ($errors): ?>

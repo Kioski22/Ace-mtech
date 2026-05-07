@@ -88,6 +88,10 @@ $ceoPortraitPath = get_ceo_portrait_path();
 		.adminPageHeader{margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e2e8f0}
 		.adminPageHeader h1{margin:0 0 10px;font-size:36px;font-weight:800;color:#0f172a;letter-spacing:-1px}
 		.adminPageHeader p{margin:0;font-size:16px;color:#64748b;line-height:1.7}
+		.frontendIndicator{margin-top:14px;padding:12px 14px;background:#ecfdf5;border:1.5px solid #86efac;border-radius:10px;color:#14532d;font-size:13px;line-height:1.6}
+		.frontendIndicator strong{display:block;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;color:#166534;margin-bottom:4px}
+		.frontendIndicator a{color:#166534;text-decoration:underline;font-weight:700}
+		.frontendIndicator a:hover{color:#14532d}
 		.alert{padding:14px 18px;border-radius:12px;margin-bottom:24px;font-size:14px;line-height:1.6}
 		.alert.error{background:#fee2e2;border:1.5px solid #fca5a5;color:#991b1b}
 		.alert.success{background:#dcfce7;border:1.5px solid #86efac;color:#166534}
@@ -139,6 +143,10 @@ $ceoPortraitPath = get_ceo_portrait_path();
 			<div class="adminPageHeader">
 				<h1>CEO Content</h1>
 				<p>Update all content displayed on the public Meet Our CEO page.</p>
+				<div class="frontendIndicator">
+					<strong>Where this appears on your website</strong>
+					Updates from this page appear on <a href="../ceo.php" target="_blank" rel="noopener noreferrer">Meet Our CEO</a>.
+				</div>
 			</div>
 
 			<?php if ($errors): ?>

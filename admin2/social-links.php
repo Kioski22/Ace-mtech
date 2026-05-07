@@ -186,6 +186,10 @@ $siteLogoPath = get_site_logo_path();
 		.adminPageHeader{margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e2e8f0}
 		.adminPageHeader h1{margin:0 0 10px;font-size:36px;font-weight:800;color:#0f172a;letter-spacing:-1px}
 		.adminPageHeader p{margin:0;font-size:16px;color:#64748b;line-height:1.7}
+		.frontendIndicator{margin-top:14px;padding:12px 14px;background:#ecfdf5;border:1.5px solid #86efac;border-radius:10px;color:#14532d;font-size:13px;line-height:1.6}
+		.frontendIndicator strong{display:block;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;color:#166534;margin-bottom:4px}
+		.frontendIndicator a{color:#166534;text-decoration:underline;font-weight:700}
+		.frontendIndicator a:hover{color:#14532d}
 		.adminCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:28px}
 		.adminCard h3{margin:0 0 20px;font-size:18px;font-weight:700;color:#0f172a}
 		.adminCard p{margin:0 0 16px;font-size:14px;color:#64748b}
@@ -252,6 +256,10 @@ $siteLogoPath = get_site_logo_path();
 			<div class="adminPageHeader">
 				<h1>Social Links</h1>
 				<p>Manage URLs shown in the <strong>Connect with us</strong> section on the products page.</p>
+				<div class="frontendIndicator">
+					<strong>Where this appears on your website</strong>
+					Logo updates appear across your site header, social links appear on <a href="../products.php" target="_blank" rel="noopener noreferrer">Products</a>, and contact details appear on <a href="../contact.php" target="_blank" rel="noopener noreferrer">Contact</a>.
+				</div>
 			</div>
 
 		<?php if ($errors): ?>

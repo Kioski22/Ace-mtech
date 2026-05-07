@@ -89,6 +89,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.adminPageHeader{margin-bottom:32px;padding-bottom:24px;border-bottom:2px solid #e2e8f0}
 		.adminPageHeader h1{margin:0 0 10px;font-size:36px;font-weight:800;color:#0f172a;letter-spacing:-1px}
 		.adminPageHeader p{margin:0;font-size:16px;color:#64748b;line-height:1.7}
+		.frontendIndicator{margin-top:14px;padding:12px 14px;background:#ecfdf5;border:1.5px solid #86efac;border-radius:10px;color:#14532d;font-size:13px;line-height:1.6}
+		.frontendIndicator strong{display:block;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;color:#166534;margin-bottom:4px}
+		.frontendIndicator a{color:#166534;text-decoration:underline;font-weight:700}
+		.frontendIndicator a:hover{color:#14532d}
 		.adminCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:28px;box-shadow:0 2px 8px rgba(0,0,0,0.04);margin-bottom:28px}
 		.formRow{margin-bottom:20px}
 		.formRow label{display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px}
@@ -135,6 +139,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			<div class="adminPageHeader">
 				<h1>Edit News Post</h1>
 				<p>Update the post content, author, order, visibility, or image.</p>
+				<div class="frontendIndicator">
+					<strong>Where this appears on your website</strong>
+					This post appears in your website news section when marked visible.
+				</div>
 			</div>
 
 		<?php if ($errors): ?>

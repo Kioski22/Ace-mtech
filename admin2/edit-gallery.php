@@ -149,6 +149,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.adminHeader{margin-bottom:32px}
 		.adminHeader h1{font-size:36px;font-weight:700;color:#1e293b;margin-bottom:8px;letter-spacing:-1px}
 		.adminHeader p{color:#64748b;font-size:16px}
+		.frontendIndicator{margin-top:14px;padding:12px 14px;background:#ecfdf5;border:1.5px solid #86efac;border-radius:10px;color:#14532d;font-size:13px;line-height:1.6}
+		.frontendIndicator strong{display:block;font-size:12px;letter-spacing:0.3px;text-transform:uppercase;color:#166534;margin-bottom:4px}
+		.frontendIndicator a{color:#166534;text-decoration:underline;font-weight:700}
+		.frontendIndicator a:hover{color:#14532d}
 		.adminCard{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:28px;margin-bottom:24px;transition:all .3s;box-shadow:0 1px 3px rgba(0,0,0,0.05)}
 		.adminCard:hover{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(0,0,0,0.08);transform:translateY(-2px)}
 		.adminCard h3{font-size:20px;font-weight:600;color:#1e293b;margin-bottom:20px}
@@ -205,6 +209,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			<div class="adminHeader">
 				<h1>Edit Gallery Post</h1>
 				<p>Manage the post details and the images inside this grouped gallery entry.</p>
+				<div class="frontendIndicator">
+					<strong>Where this appears on your website</strong>
+					This gallery post appears in <a href="../products.php" target="_blank" rel="noopener noreferrer">Products</a> when marked visible.
+				</div>
 			</div>
 
 		<?php if ($errors): ?>

@@ -126,8 +126,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 				<h1>Edit Product</h1>
 				<p>Update the product name, description, or image.</p>
 				<div class="frontendIndicator">
-					<strong>Front-end Section Affected</strong>
-					Changes here update this item in <a href="../index.php#work" target="_blank" rel="noopener noreferrer">Home: Our Services</a> and <a href="../work.php#work" target="_blank" rel="noopener noreferrer">Work: Our Services</a> when <em>Show this product in Our Services</em> is enabled.
+					<strong>Where this appears on your website</strong>
+					Items marked <em>Show this product in Our Services</em> will appear in <a href="../index.php#work" target="_blank" rel="noopener noreferrer">Home: Our Services</a> and <a href="../work.php#work" target="_blank" rel="noopener noreferrer">Work: Our Services</a>.
 				</div>
 			</div>
 
