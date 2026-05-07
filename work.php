@@ -35,6 +35,50 @@ $services = get_service_products();
 	<title>Ace‑mtech Group | Work</title>
 	<meta name="description" content="Explore Ace‑mtech Group services across architectural, civil, electrical, and mechanical engineering." />
 	<link rel="stylesheet" href="styles.css?v=2" />
+	<style>
+		#work .grid{
+			display:grid;
+			grid-template-columns:repeat(auto-fit,minmax(250px,320px));
+			gap:24px;
+			justify-content:center;
+			align-items:stretch;
+		}
+		#work .card{
+			width:100%;
+			max-width:320px;
+			min-height:380px;
+			overflow:hidden;
+			display:flex;
+			flex-direction:column;
+		}
+		#work .card.wide{
+			grid-column:auto;
+			max-width:320px;
+		}
+		#work .productMedia{
+			width:100%;
+			aspect-ratio:16 / 10;
+			overflow:hidden;
+			border-radius:10px;
+			margin-bottom:12px;
+		}
+		#work .productMedia img{
+			width:100%;
+			height:100%;
+			display:block;
+			object-fit:cover;
+		}
+		@media (max-width:640px){
+			#work .grid{
+				grid-template-columns:minmax(0,1fr);
+			}
+			#work .card,
+			#work .card.wide{
+				max-width:100%;
+				min-height:unset;
+			}
+		}
+	</style>
 </head>
 
 <body>
