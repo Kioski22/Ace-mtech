@@ -2,6 +2,25 @@
 require_once __DIR__ . "/includes/repository.php";
 
 $siteLogoPath = get_site_logo_path();
+$contactSettings = get_contact_settings();
+$contactPhone = trim((string)($contactSettings["contact_phone"] ?? ""));
+$contactEmail = trim((string)($contactSettings["contact_email"] ?? ""));
+$contactLocation = trim((string)($contactSettings["contact_location"] ?? ""));
+$contactWebsite = trim((string)($contactSettings["contact_website"] ?? ""));
+
+$contactPhoneHref = preg_replace('/[^0-9+]/', '', $contactPhone);
+if ($contactPhoneHref === "") {
+	$contactPhoneHref = "+0000000000";
+}
+
+if ($contactWebsite !== "" && !preg_match('#^https?://#i', $contactWebsite)) {
+	$contactWebsite = "https://" . $contactWebsite;
+}
+
+$contactWebsiteDisplay = preg_replace('#^https?://#i', '', $contactWebsite);
+if ($contactWebsiteDisplay === null || trim($contactWebsiteDisplay) === "") {
+	$contactWebsiteDisplay = "www.ace-mtech.com";
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -127,7 +146,7 @@ $siteLogoPath = get_site_logo_path();
 							</div>
 							<div>
 								<b>Phone</b>
-								<span><a href="tel:+0000000000">+00 000 0000</a> (replace)</span>
+								<span><a href="tel:<?php echo htmlspecialchars($contactPhoneHref); ?>"><?php echo htmlspecialchars($contactPhone); ?></a></span>
 							</div>
 						</div>
 
@@ -140,7 +159,7 @@ $siteLogoPath = get_site_logo_path();
 							</div>
 							<div>
 								<b>Email</b>
-								<span><a href="mailto:ace_mtech@yahoo.com">ace_mtech@yahoo.com</a></span>
+								<span><a href="mailto:<?php echo htmlspecialchars($contactEmail); ?>"><?php echo htmlspecialchars($contactEmail); ?></a></span>
 							</div>
 						</div>
 
@@ -153,7 +172,7 @@ $siteLogoPath = get_site_logo_path();
 							</div>
 							<div>
 								<b>Location</b>
-								<span>BLK 97 LOT 1 Fortune St.<br/>Brgy. Rizal, Taguig City</span>
+								<span><?php echo nl2br(htmlspecialchars($contactLocation)); ?></span>
 							</div>
 						</div>
 
@@ -167,7 +186,7 @@ $siteLogoPath = get_site_logo_path();
 							</div>
 							<div>
 								<b>Website</b>
-								<span><a href="http://www.ace-mtech.com" target="_blank" rel="noopener">www.ace-mtech.com</a></span>
+								<span><a href="<?php echo htmlspecialchars($contactWebsite); ?>" target="_blank" rel="noopener"><?php echo htmlspecialchars($contactWebsiteDisplay); ?></a></span>
 							</div>
 						</div>
 					</div>

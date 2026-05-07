@@ -8,6 +8,7 @@ require_admin_login();
 $errors = [];
 $success = "";
 $socialLinks = get_social_links(true);
+$contactSettings = get_contact_settings();
 $socialLinksById = [];
 foreach ($socialLinks as $socialLink) {
 	$socialLinksById[(int)$socialLink["id"]] = $socialLink;
@@ -78,6 +79,50 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 				}
 			}
 		}
+	} elseif ($action === "save_contact") {
+		$phone = trim((string)($_POST["contact_phone"] ?? ""));
+		$email = trim((string)($_POST["contact_email"] ?? ""));
+		$location = trim((string)($_POST["contact_location"] ?? ""));
+		$website = trim((string)($_POST["contact_website"] ?? ""));
+
+		if ($phone === "") {
+			$errors[] = "Phone is required.";
+		}
+
+		if ($email === "") {
+			$errors[] = "Email is required.";
+		} elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$errors[] = "Please enter a valid email address.";
+		}
+
+		if ($location === "") {
+			$errors[] = "Location is required.";
+		}
+
+		if ($website === "") {
+			$errors[] = "Website is required.";
+		} else {
+			if (!preg_match('#^https?://#i', $website)) {
+				$website = "https://" . $website;
+			}
+
+			if (!filter_var($website, FILTER_VALIDATE_URL)) {
+				$errors[] = "Please enter a valid website URL.";
+			}
+		}
+
+		if (!$errors) {
+			if (set_contact_settings([
+				"contact_phone" => $phone,
+				"contact_email" => $email,
+				"contact_location" => $location,
+				"contact_website" => $website,
+			])) {
+				$success = "Contact details updated.";
+			} else {
+				$errors[] = "Failed to update contact details.";
+			}
+		}
 	} else {
 		$id = (int)($_POST["id"] ?? 0);
 		$url = trim($_POST["url"] ?? "");
@@ -109,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	}
 
 	$socialLinks = get_social_links(true);
+	$contactSettings = get_contact_settings();
 }
 
 $siteLogoPath = get_site_logo_path();
@@ -234,6 +280,35 @@ $siteLogoPath = get_site_logo_path();
 					</div>
 				</form>
 			</div>
+		</div>
+
+		<div class="adminCard">
+			<h3>Contact Details</h3>
+			<p>Updates the Phone, Email, Location, and Website shown on the public contact page.</p>
+			<form method="post">
+				<input type="hidden" name="action" value="save_contact" />
+				<div class="list" style="gap:14px">
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="contact_phone">Phone</label>
+						<input id="contact_phone" name="contact_phone" type="text" value="<?php echo htmlspecialchars((string)$contactSettings["contact_phone"]); ?>" required style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+					</div>
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="contact_email">Email</label>
+						<input id="contact_email" name="contact_email" type="email" value="<?php echo htmlspecialchars((string)$contactSettings["contact_email"]); ?>" required style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+					</div>
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="contact_location">Location</label>
+						<textarea id="contact_location" name="contact_location" rows="3" required style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s;resize:vertical"><?php echo htmlspecialchars((string)$contactSettings["contact_location"]); ?></textarea>
+					</div>
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="contact_website">Website URL</label>
+						<input id="contact_website" name="contact_website" type="text" value="<?php echo htmlspecialchars((string)$contactSettings["contact_website"]); ?>" required style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+					</div>
+					<div>
+						<button type="submit" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s;box-shadow:0 2px 8px rgba(22,163,74,0.2);border:none;cursor:pointer"><span>Save Contact Details</span></button>
+					</div>
+				</div>
+			</form>
 		</div>
 
 		<div class="adminCard">

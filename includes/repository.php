@@ -1063,6 +1063,49 @@ function set_site_logo_path(string $logoPath): bool
 	return set_site_setting("site_logo_path", $logoPath);
 }
 
+function contact_settings_defaults(): array
+{
+	return [
+		"contact_phone" => "+00 000 0000",
+		"contact_email" => "ace_mtech@yahoo.com",
+		"contact_location" => "BLK 97 LOT 1 Fortune St.\nBrgy. Rizal, Taguig City",
+		"contact_website" => "https://www.ace-mtech.com",
+	];
+}
+
+function get_contact_settings(): array
+{
+	$defaults = contact_settings_defaults();
+	$settings = [];
+
+	foreach ($defaults as $key => $defaultValue) {
+		$value = get_site_setting($key, $defaultValue);
+		$value = is_string($value) ? trim($value) : "";
+		$settings[$key] = $value !== "" ? $value : $defaultValue;
+	}
+
+	return $settings;
+}
+
+function set_contact_settings(array $settings): bool
+{
+	$defaults = contact_settings_defaults();
+	$success = true;
+
+	foreach ($defaults as $key => $_defaultValue) {
+		if (!array_key_exists($key, $settings)) {
+			continue;
+		}
+
+		$value = trim((string)$settings[$key]);
+		if (!set_site_setting($key, $value)) {
+			$success = false;
+		}
+	}
+
+	return $success;
+}
+
 function ceo_settings_defaults(): array
 {
 	return [
