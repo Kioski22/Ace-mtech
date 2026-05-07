@@ -48,7 +48,7 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          server-dir: /public_html/
+          server-dir: /
           # avoid hidden-dotfile issues on some hosts
           state-name: ftp-deploy-sync-state.json
           dangerous-clean-slate: false
