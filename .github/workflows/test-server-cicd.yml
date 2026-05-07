@@ -26,16 +26,36 @@ jobs:
           test -n "$FTP_USERNAME" || (echo "FTP_USERNAME is empty or missing" && exit 1)
           test -n "$FTP_PASSWORD" || (echo "FTP_PASSWORD is empty or missing" && exit 1)
 
+      - name: Build clean deploy directory
+        run: |
+          rm -rf ./deploy
+          mkdir -p ./deploy
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.vscode/' \
+            --exclude='deploy/' \
+            --exclude='vendor/' \
+            --exclude='.DS_Store' \
+            --exclude='Thumbs.db' \
+            ./ ./deploy/
+
       - name: Deploy to GoDaddy
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
+          local-dir: ./deploy/
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
-          server-dir: /
+          server-dir: /public_html/
           # avoid hidden-dotfile issues on some hosts
           state-name: ftp-deploy-sync-state.json
           dangerous-clean-slate: false
           exclude: |
+            **/.git*/**
+            **/.github/**
+            **/.vscode/**
+            **/.DS_Store
+            **/Thumbs.db
             **/vendor/**

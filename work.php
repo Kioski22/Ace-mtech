@@ -55,19 +55,26 @@ $services = get_service_products();
 			grid-column:auto;
 			max-width:320px;
 		}
-		#work .productMedia{
+		#work .productMedia,
+		#work .card .productMedia{
 			width:100%;
-			aspect-ratio:16 / 10;
+			height:200px;
+			max-height:200px;
 			overflow:hidden;
 			border-radius:10px;
 			margin-bottom:12px;
 		}
-		#work .productMedia img{
+		#work .productMedia img,
+		#work .card .productMedia img{
 			width:100%;
-			height:100%;
+			height:200px;
+			max-height:200px;
 			display:block;
 			object-fit:cover;
+			object-position:center;
+			max-width:100%;
 		}
+		#work .card img{max-width:100%;}
 		@media (max-width:640px){
 			#work .grid{
 				grid-template-columns:minmax(0,1fr);
