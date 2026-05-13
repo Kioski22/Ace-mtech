@@ -38,22 +38,17 @@ $services = get_service_products();
 	<style>
 		#work .grid{
 			display:grid;
-			grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+			grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
 			gap:24px;
-			justify-content:flex-start;
-			align-items:stretch;
 		}
 		#work .card{
 			width:100%;
-			max-width:320px;
-			min-height:380px;
 			overflow:hidden;
 			display:flex;
 			flex-direction:column;
 		}
 		#work .card.wide{
-			grid-column:auto;
-			max-width:320px;
+			grid-column:1 / -1;
 		}
 		#work .productMedia,
 		#work .card .productMedia{
