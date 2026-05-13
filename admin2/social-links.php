@@ -9,6 +9,7 @@ $errors = [];
 $success = "";
 $socialLinks = get_social_links(true);
 $contactSettings = get_contact_settings();
+$msgNotificationSettings = get_msg_notification_settings();
 $socialLinksById = [];
 foreach ($socialLinks as $socialLink) {
 	$socialLinksById[(int)$socialLink["id"]] = $socialLink;
@@ -121,6 +122,108 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 				$success = "Contact details updated.";
 			} else {
 				$errors[] = "Failed to update contact details.";
+			}
+		}
+	} elseif ($action === "send_test_email") {
+		$testTo = trim((string)($_POST["test_email_to"] ?? ""));
+
+		if ($testTo === "") {
+			$errors[] = "Please enter a recipient address for the test email.";
+		} elseif (!filter_var($testTo, FILTER_VALIDATE_EMAIL)) {
+			$errors[] = "Test recipient is not a valid email address.";
+		} else {
+			require_once __DIR__ . '/../vendor/autoload.php';
+
+			function _sl_env(string $key, string $default = ''): string {
+				$v = getenv($key);
+				return $v !== false ? trim((string)$v) : $default;
+			}
+
+			function _sl_load_env(string $path): void {
+				if (!is_file($path) || !is_readable($path)) return;
+				$lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+				if (!is_array($lines)) return;
+				foreach ($lines as $line) {
+					$t = trim($line);
+					if ($t === '' || str_starts_with($t, '#')) continue;
+					$sep = strpos($t, '=');
+					if ($sep === false) continue;
+					$k = trim(substr($t, 0, $sep));
+					if ($k === '' || getenv($k) !== false) continue;
+					$val = trim(substr($t, $sep + 1));
+					if (strlen($val) >= 2 && in_array($val[0], ['"', "'"], true) && $val[0] === $val[strlen($val)-1]) $val = substr($val, 1, -1);
+					putenv($k . '=' . $val);
+					$_ENV[$k] = $val;
+				}
+			}
+
+			_sl_load_env(__DIR__ . '/../.env');
+
+			try {
+				$mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+				$host = _sl_env('SMTP_HOST', 'localhost');
+				$port = max(1, (int)_sl_env('SMTP_PORT', '25'));
+				$secure = strtolower(_sl_env('SMTP_SECURE', 'none'));
+				$auth = in_array(strtolower(_sl_env('SMTP_AUTH', 'false')), ['1','true','yes','on'], true);
+				$fromRaw = _sl_env('SMTP_FROM', 'no-reply1@ace-mtech.ph');
+				$fromName = _sl_env('SMTP_FROM_NAME', 'Ace-mtech Website');
+
+				$mail->isSMTP();
+				$mail->Host = $host;
+				$mail->Port = $port;
+				$mail->Timeout = 15;
+				$mail->CharSet = 'UTF-8';
+				$mail->SMTPAuth = $auth;
+				if ($auth) {
+					$mail->Username = _sl_env('SMTP_USER', '');
+					$mail->Password = _sl_env('SMTP_PASS', '');
+				}
+				if ($secure === 'ssl' || $secure === 'smtps') {
+					$mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+					$mail->SMTPAutoTLS = false;
+				} elseif ($secure === 'tls' || $secure === 'starttls') {
+					$mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+					$mail->SMTPAutoTLS = true;
+				} else {
+					$mail->SMTPSecure = false;
+					$mail->SMTPAutoTLS = false;
+				}
+
+				$mail->setFrom($fromRaw, $fromName);
+				$mail->addAddress($testTo);
+				$mail->Subject = 'Ace-mtech – Test Email';
+				$mail->Body = "This is a test email sent from the Ace-mtech admin panel.\n\nIf you received this message, your SMTP configuration is working correctly.\n\nHost: {$host}\nPort: {$port}\nFrom: {$fromRaw}";
+				$mail->send();
+				$success = "Test email sent successfully to " . htmlspecialchars($testTo) . ".";
+			} catch (\Throwable $e) {
+				$rawErr = isset($mail) && $mail->ErrorInfo !== '' ? $mail->ErrorInfo : $e->getMessage();
+				error_log('Ace-mtech test mail error: ' . $rawErr);
+				$errors[] = "Test email failed: " . htmlspecialchars($rawErr);
+			}
+		}
+	} elseif ($action === "save_msg_notifications") {
+		$notifTo = trim((string)($_POST["msg_notification_to"] ?? ""));
+		$notifCc = trim((string)($_POST["msg_notification_cc"] ?? ""));
+
+		if ($notifTo === "") {
+			$errors[] = "Recipient email is required.";
+		} elseif (!filter_var($notifTo, FILTER_VALIDATE_EMAIL)) {
+			$errors[] = "Recipient email is not a valid email address.";
+		}
+
+		if ($notifCc !== "" && !filter_var($notifCc, FILTER_VALIDATE_EMAIL)) {
+			$errors[] = "CC email is not a valid email address.";
+		}
+
+		if (!$errors) {
+			if (set_msg_notification_settings([
+				"msg_notification_to" => $notifTo,
+				"msg_notification_cc" => $notifCc,
+			])) {
+				$msgNotificationSettings = get_msg_notification_settings();
+				$success = "Message notification settings saved.";
+			} else {
+				$errors[] = "Failed to save notification settings.";
 			}
 		}
 	} else {
@@ -288,6 +391,40 @@ $siteLogoPath = get_site_logo_path();
 					</div>
 				</form>
 			</div>
+		</div>
+
+		<div class="adminCard">
+			<h3>Message Notification Settings</h3>
+			<p>Every quick message submitted through the public contact form is emailed to the <strong>Recipient</strong>. Optionally add a <strong>CC</strong> address to receive a copy of every message.</p>
+			<form method="post">
+				<input type="hidden" name="action" value="save_msg_notifications" />
+				<div class="list" style="gap:14px">
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="msg_notification_to">Recipient Email <span style="color:#dc2626">*</span></label>
+						<input id="msg_notification_to" name="msg_notification_to" type="email" value="<?php echo htmlspecialchars((string)$msgNotificationSettings["msg_notification_to"]); ?>" required placeholder="e.g. info@ace-mtech.ph" style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+					</div>
+					<div>
+						<label style="display:block;font-weight:600;font-size:14px;color:#0f172a;margin-bottom:8px" for="msg_notification_cc">CC Email <span style="color:#64748b;font-weight:400">(optional)</span></label>
+						<input id="msg_notification_cc" name="msg_notification_cc" type="email" value="<?php echo htmlspecialchars((string)$msgNotificationSettings["msg_notification_cc"]); ?>" placeholder="Leave blank to skip CC" style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+					</div>
+					<div>
+						<button type="submit" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#16a34a,#059669);color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s;box-shadow:0 2px 8px rgba(22,163,74,0.2);border:none;cursor:pointer"><span>Save Notification Settings</span></button>
+					</div>
+				</div>
+			</form>
+			<hr style="border:none;border-top:1px solid #e2e8f0;margin:24px 0" />
+			<h4 style="margin:0 0 8px;font-size:15px;font-weight:700;color:#0f172a">Send Test Email</h4>
+			<p style="margin:0 0 14px;font-size:13px;color:#64748b">Send a test message to verify the SMTP configuration is working. You can send it to any address.</p>
+			<form method="post" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+				<input type="hidden" name="action" value="send_test_email" />
+				<div style="flex:1;min-width:220px">
+					<label style="display:block;font-weight:600;font-size:13px;color:#0f172a;margin-bottom:6px" for="test_email_to">Send test to</label>
+					<input id="test_email_to" name="test_email_to" type="email" value="<?php echo htmlspecialchars((string)$msgNotificationSettings["msg_notification_to"]); ?>" placeholder="recipient@example.com" required style="width:100%;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;background:#fff;font-family:inherit;font-size:14px;transition:all 0.2s" />
+				</div>
+				<div>
+					<button type="submit" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#fff;color:#0f172a;border:1.5px solid #e2e8f0;border-radius:10px;font-weight:600;font-size:13px;transition:all 0.2s;cursor:pointer"><svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span>Send Test</span></button>
+				</div>
+			</form>
 		</div>
 
 		<div class="adminCard">

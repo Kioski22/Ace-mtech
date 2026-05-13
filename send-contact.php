@@ -155,6 +155,19 @@ require $autoloadPath;
 
 load_env_file(__DIR__ . '/.env');
 
+// Load recipient settings from DB (TO and CC), with env var as fallback.
+$dbNotificationTo = '';
+$dbNotificationCc = '';
+try {
+	require_once __DIR__ . '/includes/db.php';
+	require_once __DIR__ . '/includes/repository.php';
+	$_msgSettings = get_msg_notification_settings();
+	$dbNotificationTo = trim((string)($_msgSettings['msg_notification_to'] ?? ''));
+	$dbNotificationCc = trim((string)($_msgSettings['msg_notification_cc'] ?? ''));
+} catch (Throwable $dbErr) {
+	error_log('Ace-mtech contact: DB notification lookup failed – ' . $dbErr->getMessage());
+}
+
 $honeypot = post_string('website');
 if ($honeypot !== '') {
 	respond_json(200, ['ok' => true]);
@@ -190,11 +203,12 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 $smtpConfig = [
 	'host' => env_value('SMTP_HOST', 'localhost'),
 	'port' => (int) env_value('SMTP_PORT', '25'),
-	'user' => env_value('SMTP_USER', 'no-reply@ace-mtech.ph'),
+	'user' => env_value('SMTP_USER', 'no-reply1@ace-mtech.ph'),
 	'pass' => env_value('SMTP_PASS', ''),
-	'from' => env_value('SMTP_FROM', 'no-reply@ace-mtech.ph'),
+	'from' => env_value('SMTP_FROM', 'no-reply1@ace-mtech.ph'),
 	'from_name' => env_value('SMTP_FROM_NAME', 'Ace-mtech Website'),
-	'to' => env_value('SMTP_TO', 'floresrandy.m@gmail.com'),
+	'to' => $dbNotificationTo !== '' ? $dbNotificationTo : env_value('SMTP_TO', ''),
+	'cc' => $dbNotificationCc,
 	'secure' => strtolower(env_value('SMTP_SECURE', 'none')),
 	'auth' => env_flag('SMTP_AUTH', false),
 	'timeout' => max(5, (int) env_value('SMTP_TIMEOUT', '15')),
@@ -230,6 +244,9 @@ try {
 	apply_smtp_transport($mail, $smtpConfig);
 	$mail->setFrom($fromEmail, $fromName);
 	$mail->addAddress($smtpConfig['to']);
+	if ($smtpConfig['cc'] !== '' && filter_var($smtpConfig['cc'], FILTER_VALIDATE_EMAIL)) {
+		$mail->addCC($smtpConfig['cc']);
+	}
 	$mail->addReplyTo($email, $name);
 	$mail->Subject = $subject;
 	$mail->Body = $body;

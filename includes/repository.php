@@ -1213,3 +1213,28 @@ function set_ceo_portrait_path(string $portraitPath): bool
 {
 	return set_site_setting("ceo_portrait_path", $portraitPath);
 }
+
+function get_msg_notification_settings(): array
+{
+	return [
+		"msg_notification_to" => (string)(get_site_setting("msg_notification_to", "") ?? ""),
+		"msg_notification_cc" => (string)(get_site_setting("msg_notification_cc", "") ?? ""),
+	];
+}
+
+function set_msg_notification_settings(array $settings): bool
+{
+	$success = true;
+
+	foreach (["msg_notification_to", "msg_notification_cc"] as $key) {
+		if (!array_key_exists($key, $settings)) {
+			continue;
+		}
+
+		if (!set_site_setting($key, trim((string)$settings[$key]))) {
+			$success = false;
+		}
+	}
+
+	return $success;
+}
