@@ -37,18 +37,18 @@ $services = get_service_products();
 	<link rel="stylesheet" href="styles.css?v=2" />
 	<style>
 		#work .grid{
-			display:grid;
-			grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+			display:flex;
+			flex-wrap:wrap;
 			gap:24px;
 		}
 		#work .card{
-			width:100%;
+			flex:1 1 280px;
 			overflow:hidden;
 			display:flex;
 			flex-direction:column;
 		}
 		#work .card.wide{
-			grid-column:1 / -1;
+			flex-basis:100%;
 		}
 		#work .productMedia,
 		#work .card .productMedia{
