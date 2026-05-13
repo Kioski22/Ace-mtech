@@ -42,7 +42,7 @@ $services = get_service_products();
 			gap:24px;
 		}
 		#work .card{
-			flex:1 1 280px;
+			flex:1 0 calc(33.333% - 16px);
 			overflow:hidden;
 			display:flex;
 			flex-direction:column;
