@@ -38,9 +38,9 @@ $services = get_service_products();
 	<style>
 		#work .grid{
 			display:grid;
-			grid-template-columns:repeat(auto-fit,minmax(250px,320px));
+			grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
 			gap:24px;
-			justify-content:center;
+			justify-content:flex-start;
 			align-items:stretch;
 		}
 		#work .card{
